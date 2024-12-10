@@ -4,7 +4,6 @@ import {
   View,
   TextInput,
   Image,
-  ImageBackground,
   TouchableOpacity,
 } from "react-native";
 import React, { useState } from "react";
