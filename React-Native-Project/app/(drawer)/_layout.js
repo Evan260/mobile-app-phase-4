@@ -1,8 +1,6 @@
-import { View, Text } from "react-native";
 import React from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Drawer } from "expo-router/drawer";
-import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { DrawerToggleButton } from "@react-navigation/drawer";
 
 const _layout = () => {
@@ -16,12 +14,11 @@ const _layout = () => {
             color: "white",
             fontWeight: "bold",
           },
-          drawerPosition: 'right',
+          drawerPosition: "right",
           headerLeft: false,
           headerRight: () => <DrawerToggleButton />,
         }}
       >
-        
         <Drawer.Screen name="Setting" />
         <Drawer.Screen name="inbox" />
       </Drawer>

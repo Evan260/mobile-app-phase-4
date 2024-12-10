@@ -3,8 +3,8 @@ import React from "react";
 
 const Setting = () => {
   return (
-    <View style={{flex:1, backgroundColor:"black"}}>
-      <Text style={{color:"white"}}>Setting</Text>
+    <View style={{ flex: 1, backgroundColor: "black" }}>
+      <Text style={{ color: "white" }}>Setting</Text>
     </View>
   );
 };
