@@ -42,8 +42,7 @@ const Index = () => {
             style={styles.Button}
             onPress={() => navigation.navigate("(drawer)")}
           >
-            {" "}
-            Login
+            <Text style={{ color: "white" }}>Login</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -81,11 +80,11 @@ const styles = StyleSheet.create({
   },
   userName: {
     width: 362.176,
-    height: 46.235,
-    paddingVertical: 7.706,
-    paddingHorizontal: 15.412,
+    height: 56,
+    paddingVertical: 7,
+    paddingHorizontal: 15,
     alignItems: "center",
-    borderRadius: 46.235,
+    borderRadius: 46,
     backgroundColor: "white",
     flexDirection: "row",
     justifyContent: "space-between",
@@ -93,18 +92,20 @@ const styles = StyleSheet.create({
   userNameText: {
     flex: 1,
     fontSize: 16,
+    paddingVertical: 8,
     paddingHorizontal: 10,
     color: "#333",
+    height: 40,
   },
   Button: {
-    height: 46.235,
-    paddingTop: 13.871,
+    height: 56,
+    paddingTop: 14,
     paddingLeft: 160,
     paddingRight: 160,
-    paddingBottom: 7.706,
+    paddingBottom: 7,
     justifyContent: "center",
     alignItems: "center",
-    borderRadius: 46.235,
+    borderRadius: 46,
     backgroundColor: "#506AE1",
     color: "white",
   },
