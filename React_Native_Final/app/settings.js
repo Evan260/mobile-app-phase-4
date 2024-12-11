@@ -67,15 +67,15 @@ const styles = StyleSheet.create({
   button: {
     width: '100%',
     padding: 12,
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginVertical: 8,
     borderBottomWidth: 1,
-    borderColor: 'white', 
+    borderColor: 'white',
   },
   LogoutButton: {
     width: '100%',
     padding: 12,
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginVertical: 8,
     borderBottomWidth: 1, 
     borderColor: 'red',
@@ -84,12 +84,12 @@ const styles = StyleSheet.create({
   buttonTextContainer: {
     width: '100%',
     flexDirection: 'row',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     alignItems: 'center',
   },
   accountButtonTextContainer: {
     flexDirection: 'row',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     alignItems: 'center',
     width: '100%',
   },
@@ -100,7 +100,8 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter',
     lineHeight: 24,
     flex: 1,
-    textAlign: 'center',
+    textAlign: 'left',
+    marginLeft: 10,
   },
   text: {
     color: 'white',
@@ -109,11 +110,11 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter',
     lineHeight: 24,
     flex: 1,
-    textAlign: 'center',
+    textAlign: 'left',
+    marginLeft: 10,
   },
   Icon: {
-    position: 'absolute',
-    left: 10,
+    marginRight: 5,
   },
   logOutText: {
     color: '#ff0000',
@@ -122,7 +123,8 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter',
     lineHeight: 24,
     flex: 1,
-    textAlign: 'center',
+    textAlign: 'left',
+    marginLeft: 10, 
   },
 });
 
