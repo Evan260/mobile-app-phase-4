@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
     paddingRight: 25,
   },
   buttonArea: {
-    alignItems: "left", // Center align the text and separator
+    alignItems: "left", 
     flexDirection: "row",
     paddingTop: 5,
   },
@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
   },
   sp: {
-    width: "100%", // Makes the separator match the width of the button container
+    width: "100%",
     height: 1,
     backgroundColor: "white",
     marginTop: 10,
