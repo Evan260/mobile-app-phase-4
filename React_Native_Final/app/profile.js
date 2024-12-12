@@ -1,28 +1,28 @@
-import { View, Text, StyleSheet, Image, TouchableOpacity} from "react-native";
+import { View, Text, StyleSheet, Image, TouchableOpacity } from "react-native";
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const profile_picture = require("../assets/blank-profile.png");
-const placeH = require("../assets/blank-profile.png")
+const placeH = require("../assets/blank-profile.png");
 const Profile = () => {
   return (
     <View style={styles.container}>
-        <SafeAreaView style={styles.safeArea}>
-          <View style={styles.topSection}>
-            <View style={styles.profpicSection}>
-              <Image source={profile_picture} style={styles.profpic}/>
-            </View>
-              <Text style={styles.name}>Account Name</Text>
-              <Text style={styles.membership}>Premium</Text>
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.topSection}>
+          <View style={styles.profpicSection}>
+            <Image source={profile_picture} style={styles.profpic} />
           </View>
+          <Text style={styles.name}>Account Name</Text>
+          <Text style={styles.membership}>Premium</Text>
+        </View>
 
-          <TouchableOpacity style={styles.buttonSection} activeOpacity={0.7}>
+        <TouchableOpacity style={styles.buttonSection} activeOpacity={0.7}>
           <View style={styles.buttonArea}>
             <View style={styles.iconArea}>
               {/* placeH is a placeholder */}
               <Image source={placeH} style={styles.iconStyle} resizeMode="contain"/>
           </View>
-            <Text style={styles.buttonName}>Account</Text>
+            <Text style={styles.buttonName}>placeH</Text>
           </View>
           <View style={styles.sp}></View>
         </TouchableOpacity>
@@ -33,7 +33,7 @@ const Profile = () => {
               {/* placeH is a placeholder */}
               <Image source={placeH} style={styles.iconStyle} resizeMode="contain"/>
           </View>
-            <Text style={styles.buttonName}>Notifications</Text>
+            <Text style={styles.buttonName}>placeH</Text>
           </View>
           <View style={styles.sp}></View>
         </TouchableOpacity>
@@ -44,7 +44,7 @@ const Profile = () => {
               {/* placeH is a placeholder */}
               <Image source={placeH} style={styles.iconStyle} resizeMode="contain"/>
           </View>
-            <Text style={styles.buttonName}>Settings</Text>
+            <Text style={styles.buttonName}>placeH</Text>
           </View>
           <View style={styles.sp}></View>
         </TouchableOpacity>
@@ -55,7 +55,7 @@ const Profile = () => {
               {/* placeH is a placeholder */}
               <Image source={placeH} style={styles.iconStyle} resizeMode="contain"/>
           </View>
-            <Text style={styles.buttonName}>Help</Text>
+            <Text style={styles.buttonName}>placeH</Text>
           </View>
           <View style={styles.sp}></View>
         </TouchableOpacity>
@@ -66,11 +66,10 @@ const Profile = () => {
               {/* placeH is a placeholder */}
               <Image source={placeH} style={styles.iconStyle} resizeMode="contain"/>
           </View>
-            <Text style={styles.buttonName}>Logout</Text>
+            <Text style={styles.buttonName}>placeH</Text>
           </View>
           <View style={styles.sp}></View>
         </TouchableOpacity>
-
       </SafeAreaView>
     </View>
   );
@@ -118,7 +117,7 @@ const styles = StyleSheet.create({
     paddingRight: 25,
   },
   buttonArea: {
-    alignItems: "left", 
+    alignItems: "left",
     flexDirection: "row",
     paddingTop: 5,
   },
@@ -135,7 +134,7 @@ const styles = StyleSheet.create({
   },
   buttonName: {
     fontSize: 20,
-    color: "white", 
+    color: "white",
     paddingTop: 12,
     paddingLeft: 10,
   },
