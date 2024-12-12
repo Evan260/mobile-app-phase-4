@@ -2,8 +2,8 @@ import { View, Text, StyleSheet, Image, TouchableOpacity } from "react-native";
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const profile_picture = require("../assets/blank-profile.png");
-const placeH = require("../assets/blank-profile.png");
+const profile_picture = require("../../assets/blank-profile.png");
+const placeH = require("../../assets/blank-profile.png");
 const Profile = () => {
   return (
     <View style={styles.container}>
