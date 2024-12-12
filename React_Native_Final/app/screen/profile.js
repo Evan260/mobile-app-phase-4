@@ -20,12 +20,8 @@ const Profile = () => {
           <View style={styles.buttonArea}>
             <View style={styles.iconArea}>
               {/* placeH is a placeholder */}
-              <Image
-                source={placeH}
-                style={styles.iconStyle}
-                resizeMode="contain"
-              />
-            </View>
+              <Image source={placeH} style={styles.iconStyle} resizeMode="contain"/>
+          </View>
             <Text style={styles.buttonName}>placeH</Text>
           </View>
           <View style={styles.sp}></View>
@@ -35,12 +31,8 @@ const Profile = () => {
           <View style={styles.buttonArea}>
             <View style={styles.iconArea}>
               {/* placeH is a placeholder */}
-              <Image
-                source={placeH}
-                style={styles.iconStyle}
-                resizeMode="contain"
-              />
-            </View>
+              <Image source={placeH} style={styles.iconStyle} resizeMode="contain"/>
+          </View>
             <Text style={styles.buttonName}>placeH</Text>
           </View>
           <View style={styles.sp}></View>
@@ -50,12 +42,8 @@ const Profile = () => {
           <View style={styles.buttonArea}>
             <View style={styles.iconArea}>
               {/* placeH is a placeholder */}
-              <Image
-                source={placeH}
-                style={styles.iconStyle}
-                resizeMode="contain"
-              />
-            </View>
+              <Image source={placeH} style={styles.iconStyle} resizeMode="contain"/>
+          </View>
             <Text style={styles.buttonName}>placeH</Text>
           </View>
           <View style={styles.sp}></View>
@@ -65,12 +53,8 @@ const Profile = () => {
           <View style={styles.buttonArea}>
             <View style={styles.iconArea}>
               {/* placeH is a placeholder */}
-              <Image
-                source={placeH}
-                style={styles.iconStyle}
-                resizeMode="contain"
-              />
-            </View>
+              <Image source={placeH} style={styles.iconStyle} resizeMode="contain"/>
+          </View>
             <Text style={styles.buttonName}>placeH</Text>
           </View>
           <View style={styles.sp}></View>
@@ -80,12 +64,8 @@ const Profile = () => {
           <View style={styles.buttonArea}>
             <View style={styles.iconArea}>
               {/* placeH is a placeholder */}
-              <Image
-                source={placeH}
-                style={styles.iconStyle}
-                resizeMode="contain"
-              />
-            </View>
+              <Image source={placeH} style={styles.iconStyle} resizeMode="contain"/>
+          </View>
             <Text style={styles.buttonName}>placeH</Text>
           </View>
           <View style={styles.sp}></View>
