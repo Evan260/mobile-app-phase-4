@@ -1,9 +1,9 @@
-import { View, Text } from "react-native";
+import { View, Text, StyleSheet, Image, TouchableOpacity} from "react-native";
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const profile_picture = require("React-Native-Project\assets\blank-profile-picture-973460_1280.webp")
-const placeH = require("React-Native-Project\assets\account.png")
+const profile_picture = require("../../assets/blank-profile-picture-973460_1280.png");
+const placeH = require("../../assets/blank-profile-picture-973460_1280.png")
 const Profile = () => {
   return (
     <View style={styles.container}>
@@ -16,7 +16,7 @@ const Profile = () => {
               <Text style={styles.membership}>Premium</Text>
           </View>
 
-        <TouchableOpacity style={styles.buttonSection} activeOpacity={0.7}>
+          <TouchableOpacity style={styles.buttonSection} activeOpacity={0.7}>
           <View style={styles.buttonArea}>
             <View style={styles.iconArea}>
               {/* placeH is a placeholder */}
@@ -81,34 +81,35 @@ export default Profile;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: black,
+    backgroundColor: "black",
   },
   safeArea: {
     flex: 1,
   },
   topSection: {
-    height : 300,
+    height: 300,
     justifyContent: "center",
     alignItems: "center",
   },
   profpicSection: {
-    width : 170,
-    height : 170,
-    borderRadius : "100%",
+    width: 170,
+    height: 170,
+    borderRadius: "100%",
     borderWidth: 4,
-    borderColor:"green",
+    borderColor: "green",
   },
   profpic: {
     width: "100%",
     height: "100%",
+    borderRadius: "100%",
   },
   name: {
     marginTop: 20,
-    color : "white",
+    color: "white",
     fontSize: 30,
   },
   membership: {
-    color : "yellow",
+    color: "yellow",
     fontSize: 19,
   },
   buttonSection: {
@@ -117,9 +118,9 @@ const styles = StyleSheet.create({
     paddingRight: 25,
   },
   buttonArea: {
+    alignItems: "left", // Center align the text and separator
     flexDirection: "row",
-    justifyContent: "center",
-    alighnItems: "center",
+    paddingTop: 5,
   },
   iconArea: {
     width: 50,
@@ -133,15 +134,15 @@ const styles = StyleSheet.create({
     height: 30,
   },
   buttonName: {
-    width: 300,
     fontSize: 20,
-    color: "white",
-    marginLeft: 20,
+    color: "white", 
+    paddingTop: 12,
+    paddingLeft: 10,
   },
   sp: {
-    width: 400,
-    marginTop: 10,
+    width: "100%", // Makes the separator match the width of the button container
     height: 1,
     backgroundColor: "white",
+    marginTop: 10,
   },
 });
