@@ -1,15 +1,15 @@
-import React from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
-import { TouchableOpacity } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import Calculator from './calc';
-import Settings from './settings';
-import About from './screen/about';
-import AccountScreen from './screen/accountScreen';
-import AppearanceScreen from './screen/appearanceScreen';
-import Help from './screen/help';
-import Privacy from './screen/privacy';
-import Login from './login'; 
+import React from "react";
+import { createStackNavigator } from "@react-navigation/stack";
+import { TouchableOpacity } from "react-native";
+import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import Calculator from "./calc";
+import Settings from "./settings";
+import About from "./screen/about";
+import Account from "./screen/account";
+import Appearance from "./screen/appearance";
+import Help from "./screen/help";
+import Privacy from "./screen/privacy";
+import Login from "./login";
 
 const Stack = createStackNavigator();
 
@@ -20,13 +20,13 @@ const CalculatorStack = () => (
       component={Calculator}
       options={({ navigation }) => ({
         headerStyle: {
-          backgroundColor: 'black',
+          backgroundColor: "black",
         },
-        headerTintColor: 'white',
-        headerTitle: '',
+        headerTintColor: "white",
+        headerTitle: "",
         headerLeft: () => null,
         headerRight: () => (
-          <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
+          <TouchableOpacity onPress={() => navigation.navigate("Settings")}>
             <Icon name="dots-vertical" size={30} color="white" />
           </TouchableOpacity>
         ),
@@ -38,9 +38,9 @@ const CalculatorStack = () => (
       component={Settings}
       options={{
         headerStyle: {
-          backgroundColor: 'black',
+          backgroundColor: "black",
         },
-        headerTintColor: 'white',
+        headerTintColor: "white",
       }}
     />
 
@@ -49,31 +49,31 @@ const CalculatorStack = () => (
       component={About}
       options={{
         headerStyle: {
-          backgroundColor: 'black',
+          backgroundColor: "black",
         },
-        headerTintColor: 'white',
+        headerTintColor: "white",
       }}
     />
 
     <Stack.Screen
       name="Account"
-      component={AccountScreen}
+      component={Account}
       options={{
         headerStyle: {
-          backgroundColor: 'black',
+          backgroundColor: "black",
         },
-        headerTintColor: 'white',
+        headerTintColor: "white",
       }}
     />
 
     <Stack.Screen
       name="Appearance"
-      component={AppearanceScreen}
+      component={Appearance}
       options={{
         headerStyle: {
-          backgroundColor: 'black',
+          backgroundColor: "black",
         },
-        headerTintColor: 'white',
+        headerTintColor: "white",
       }}
     />
 
@@ -82,9 +82,9 @@ const CalculatorStack = () => (
       component={Help}
       options={{
         headerStyle: {
-          backgroundColor: 'black',
+          backgroundColor: "black",
         },
-        headerTintColor: 'white',
+        headerTintColor: "white",
       }}
     />
 
@@ -93,9 +93,9 @@ const CalculatorStack = () => (
       component={Privacy}
       options={{
         headerStyle: {
-          backgroundColor: 'black',
+          backgroundColor: "black",
         },
-        headerTintColor: 'white',
+        headerTintColor: "white",
       }}
     />
   </Stack.Navigator>
