@@ -35,8 +35,8 @@ Yet Another Calculator is a React Native project designed to provide an intuitiv
 
 ## Installation
 1. Clone the repository: `git clone https://github.com/Evan260/mobile-app-phase-4.git`
-2. Navigate to the project directory: `cd React-Native-Project`
+2. Navigate to the project directory: `cd React_Native_Final`
 3. Install dependencies: `npm install`
 
 ## Usage
-Start the server: npx expo start
+Start the server: npm start
