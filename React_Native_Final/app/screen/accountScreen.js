@@ -1,95 +1,73 @@
-import { View, Text, StyleSheet, Image, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView } from "react-native";
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const profile_picture = require("../../assets/blank-profile.png");
 const placeH = require("../../assets/blank-profile.png");
+
 const Profile = () => {
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
-        <View style={styles.topSection}>
-          <View style={styles.profpicSection}>
-            <Image source={profile_picture} style={styles.profpic} />
-          </View>
-          <Text style={styles.name}>Account Name</Text>
-          <Text style={styles.membership}>Premium</Text>
-        </View>
-
-        <TouchableOpacity style={styles.buttonSection} activeOpacity={0.7}>
-          <View style={styles.buttonArea}>
-            <View style={styles.iconArea}>
-              {/* placeH is a placeholder */}
-              <Image
-                source={placeH}
-                style={styles.iconStyle}
-                resizeMode="contain"
-              />
+        <ScrollView contentContainerStyle={styles.scrollViewContent}>
+          <View style={styles.topSection}>
+            <View style={styles.profpicSection}>
+              <Image source={profile_picture} style={styles.profpic} />
             </View>
-            <Text style={styles.buttonName}>placeH</Text>
+            <Text style={styles.name}>Account Name</Text>
+            <Text style={styles.membership}>Premium</Text>
           </View>
-          <View style={styles.sp}></View>
-        </TouchableOpacity>
 
-        <TouchableOpacity style={styles.buttonSection} activeOpacity={0.7}>
-          <View style={styles.buttonArea}>
-            <View style={styles.iconArea}>
-              {/* placeH is a placeholder */}
-              <Image
-                source={placeH}
-                style={styles.iconStyle}
-                resizeMode="contain"
-              />
+          <TouchableOpacity style={styles.buttonSection} activeOpacity={0.7}>
+            <View style={styles.buttonArea}>
+              <View style={styles.iconArea}>
+                <Image source={placeH} style={styles.iconStyle} resizeMode="contain" />
+              </View>
+              <Text style={styles.buttonName}>placeH</Text>
             </View>
-            <Text style={styles.buttonName}>placeH</Text>
-          </View>
-          <View style={styles.sp}></View>
-        </TouchableOpacity>
+            <View style={styles.sp}></View>
+          </TouchableOpacity>
 
-        <TouchableOpacity style={styles.buttonSection} activeOpacity={0.7}>
-          <View style={styles.buttonArea}>
-            <View style={styles.iconArea}>
-              {/* placeH is a placeholder */}
-              <Image
-                source={placeH}
-                style={styles.iconStyle}
-                resizeMode="contain"
-              />
+          <TouchableOpacity style={styles.buttonSection} activeOpacity={0.7}>
+            <View style={styles.buttonArea}>
+              <View style={styles.iconArea}>
+                <Image source={placeH} style={styles.iconStyle} resizeMode="contain" />
+              </View>
+              <Text style={styles.buttonName}>placeH</Text>
             </View>
-            <Text style={styles.buttonName}>placeH</Text>
-          </View>
-          <View style={styles.sp}></View>
-        </TouchableOpacity>
+            <View style={styles.sp}></View>
+          </TouchableOpacity>
 
-        <TouchableOpacity style={styles.buttonSection} activeOpacity={0.7}>
-          <View style={styles.buttonArea}>
-            <View style={styles.iconArea}>
-              {/* placeH is a placeholder */}
-              <Image
-                source={placeH}
-                style={styles.iconStyle}
-                resizeMode="contain"
-              />
+          <TouchableOpacity style={styles.buttonSection} activeOpacity={0.7}>
+            <View style={styles.buttonArea}>
+              <View style={styles.iconArea}>
+                <Image source={placeH} style={styles.iconStyle} resizeMode="contain" />
+              </View>
+              <Text style={styles.buttonName}>placeH</Text>
             </View>
-            <Text style={styles.buttonName}>placeH</Text>
-          </View>
-          <View style={styles.sp}></View>
-        </TouchableOpacity>
+            <View style={styles.sp}></View>
+          </TouchableOpacity>
 
-        <TouchableOpacity style={styles.buttonSection} activeOpacity={0.7}>
-          <View style={styles.buttonArea}>
-            <View style={styles.iconArea}>
-              {/* placeH is a placeholder */}
-              <Image
-                source={placeH}
-                style={styles.iconStyle}
-                resizeMode="contain"
-              />
+          <TouchableOpacity style={styles.buttonSection} activeOpacity={0.7}>
+            <View style={styles.buttonArea}>
+              <View style={styles.iconArea}>
+                <Image source={placeH} style={styles.iconStyle} resizeMode="contain" />
+              </View>
+              <Text style={styles.buttonName}>placeH</Text>
             </View>
-            <Text style={styles.buttonName}>placeH</Text>
-          </View>
-          <View style={styles.sp}></View>
-        </TouchableOpacity>
+            <View style={styles.sp}></View>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.buttonSection} activeOpacity={0.7}>
+            <View style={styles.buttonArea}>
+              <View style={styles.iconArea}>
+                <Image source={placeH} style={styles.iconStyle} resizeMode="contain" />
+              </View>
+              <Text style={styles.buttonName}>placeH</Text>
+            </View>
+            <View style={styles.sp}></View>
+          </TouchableOpacity>
+        </ScrollView>
       </SafeAreaView>
     </View>
   );
@@ -105,6 +83,9 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
+  scrollViewContent: {
+    paddingBottom: 20,
+  },
   topSection: {
     height: 300,
     justifyContent: "center",
@@ -113,14 +94,14 @@ const styles = StyleSheet.create({
   profpicSection: {
     width: 170,
     height: 170,
-    borderRadius: "100%",
+    borderRadius: 85,
     borderWidth: 4,
     borderColor: "green",
   },
   profpic: {
     width: "100%",
     height: "100%",
-    borderRadius: "100%",
+    borderRadius: 85,
   },
   name: {
     marginTop: 20,
@@ -137,7 +118,7 @@ const styles = StyleSheet.create({
     paddingRight: 25,
   },
   buttonArea: {
-    alignItems: "left",
+    alignItems: "flex-start",
     flexDirection: "row",
     paddingTop: 5,
   },
