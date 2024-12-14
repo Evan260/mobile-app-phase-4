@@ -1,5 +1,12 @@
-import React, { useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import React, { useState, useEffect, useRef } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Animated,
+} from "react-native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
 const Calculator = () => {
@@ -8,10 +15,59 @@ const Calculator = () => {
   const [showingResult, setShowingResult] = useState(false);
   const [isNewNumber, setIsNewNumber] = useState(true);
   const [isScientific, setIsScientific] = useState(false);
+  const [cursorPosition, setCursorPosition] = useState(0);
+  const [isFocused, setIsFocused] = useState(false);
+
+  const handleEquationChange = (text) => {
+    setEquation(text);
+    setDisplay(calculateLiveResult(text));
+    setShowingResult(false);
+  };
+
+  const handleSelectionChange = (event) => {
+    setCursorPosition(event.nativeEvent.selection.start);
+  };
+
+  const BlinkingCursor = ({ position, text }) => {
+    const opacity = useRef(new Animated.Value(1)).current;
+
+    useEffect(() => {
+      const animation = Animated.loop(
+        Animated.sequence([
+          Animated.timing(opacity, {
+            toValue: 0,
+            duration: 500,
+            useNativeDriver: true,
+          }),
+          Animated.timing(opacity, {
+            toValue: 1,
+            duration: 500,
+            useNativeDriver: true,
+          }),
+        ])
+      );
+
+      animation.start();
+      return () => animation.stop();
+    }, []);
+
+    return (
+      <Text style={[styles.equationText, styles.boldText]}>
+        {text.slice(0, position)}
+        <Animated.Text style={[styles.cursor, { opacity }]}>|</Animated.Text>
+        {text.slice(position) || " "}
+      </Text>
+    );
+  };
 
   const calculateLiveResult = (expr) => {
     try {
       if (!expr) return "";
+
+      // Handle percentage calculations first
+      expr = expr.replace(/(\d+\.?\d*)%/g, (_, num) => {
+        return (parseFloat(num) / 100).toString();
+      });
 
       // Remove trailing operator for calculation
       let tempExpr = expr;
@@ -49,16 +105,17 @@ const Calculator = () => {
     if (showingResult) {
       setDisplay("");
       setEquation(num);
+      setCursorPosition(num.length);
       setShowingResult(false);
-    } else if (isNewNumber) {
-      const newEquation = equation + num;
+    } else {
+      const newEquation =
+        equation.slice(0, cursorPosition) +
+        num +
+        equation.slice(cursorPosition);
       setEquation(newEquation);
+      setCursorPosition(cursorPosition + num.length);
       setDisplay(calculateLiveResult(newEquation));
       setIsNewNumber(false);
-    } else {
-      const newEquation = equation + num;
-      setEquation(newEquation);
-      setDisplay(calculateLiveResult(newEquation));
     }
   };
 
@@ -66,27 +123,41 @@ const Calculator = () => {
     if (showingResult) {
       const newEquation = display + operator;
       setEquation(newEquation);
-      setDisplay("");
+      setCursorPosition(newEquation.length);
+      setDisplay(calculateLiveResult(newEquation));
     } else {
-      const newEquation = equation + operator;
+      const newEquation =
+        equation.slice(0, cursorPosition) +
+        operator +
+        equation.slice(cursorPosition);
       setEquation(newEquation);
-      setDisplay("");
+      setCursorPosition(cursorPosition + operator.length);
+      setDisplay(calculateLiveResult(newEquation));
     }
     setIsNewNumber(true);
     setShowingResult(false);
   };
 
   const handlePercentage = () => {
+    let newEquation;
+    let newPosition;
+
     if (showingResult) {
-      const newEquation = display + "%";
-      setEquation(newEquation);
-      setDisplay(calculateLiveResult(newEquation));
+      newEquation = display + "%";
+      newPosition = newEquation.length;
     } else {
-      const newEquation = equation + "%";
-      setEquation(newEquation);
-      setDisplay(calculateLiveResult(newEquation));
+      newEquation =
+        equation.slice(0, cursorPosition) +
+        "%" +
+        equation.slice(cursorPosition);
+      newPosition = cursorPosition + 1;
     }
+
+    setEquation(newEquation);
+    setCursorPosition(newPosition);
+    setDisplay(calculateLiveResult(newEquation));
     setIsNewNumber(true);
+    setShowingResult(false);
   };
 
   const evaluateExpression = (expr) => {
@@ -210,12 +281,20 @@ const Calculator = () => {
   };
 
   const handleScientificFunction = (func) => {
+    let newEquation;
+    let newPosition;
+
     switch (func) {
       case "sqrt":
         if (showingResult || !equation) {
-          setEquation("√");
+          newEquation = "√";
+          newPosition = 1;
         } else {
-          setEquation(equation + "√");
+          newEquation =
+            equation.slice(0, cursorPosition) +
+            "√" +
+            equation.slice(cursorPosition);
+          newPosition = cursorPosition + 1;
         }
         break;
 
@@ -225,45 +304,74 @@ const Calculator = () => {
       case "log":
       case "ln":
         if (showingResult) {
-          setEquation(func + "(" + display + ")");
+          newEquation = func + "(" + display + ")";
+          newPosition = newEquation.length;
         } else {
-          setEquation(equation + func + "(");
+          const funcStr = func + "(";
+          newEquation =
+            equation.slice(0, cursorPosition) +
+            funcStr +
+            equation.slice(cursorPosition);
+          newPosition = cursorPosition + funcStr.length;
         }
         break;
 
       case "inv":
         if (showingResult) {
-          setEquation("1/(" + display + ")");
+          newEquation = "1/(" + display + ")";
+          newPosition = newEquation.length;
         } else {
-          setEquation(equation + "1/(");
+          const invStr = "1/(";
+          newEquation =
+            equation.slice(0, cursorPosition) +
+            invStr +
+            equation.slice(cursorPosition);
+          newPosition = cursorPosition + invStr.length;
         }
         break;
 
       case "factorial":
         if (showingResult) {
-          setEquation(display + "!");
+          newEquation = display + "!";
+          newPosition = newEquation.length;
         } else {
-          setEquation(equation + "!");
+          newEquation =
+            equation.slice(0, cursorPosition) +
+            "!" +
+            equation.slice(cursorPosition);
+          newPosition = cursorPosition + 1;
         }
         break;
 
       case "pi":
         if (showingResult || !equation) {
-          setEquation("π");
+          newEquation = "π";
+          newPosition = 1;
         } else {
-          setEquation(equation + "π");
+          newEquation =
+            equation.slice(0, cursorPosition) +
+            "π" +
+            equation.slice(cursorPosition);
+          newPosition = cursorPosition + 1;
         }
         break;
 
       case "e":
         if (showingResult || !equation) {
-          setEquation("e");
+          newEquation = "e";
+          newPosition = 1;
         } else {
-          setEquation(equation + "e");
+          newEquation =
+            equation.slice(0, cursorPosition) +
+            "e" +
+            equation.slice(cursorPosition);
+          newPosition = cursorPosition + 1;
         }
         break;
     }
 
+    setEquation(newEquation);
+    setCursorPosition(newPosition);
     setShowingResult(false);
     setDisplay("");
     setIsNewNumber(false);
@@ -272,6 +380,7 @@ const Calculator = () => {
   const clear = () => {
     setDisplay("");
     setEquation("");
+    setCursorPosition(0);
     setShowingResult(false);
     setIsNewNumber(true);
   };
@@ -336,15 +445,39 @@ const Calculator = () => {
         {/* Display */}
         <View style={styles.displayWrapper}>
           <View style={styles.displayContainer}>
-            <Text
-              style={[
-                styles.equationText,
-                !showingResult ? styles.boldText : styles.smallText,
-              ]}
-              numberOfLines={1}
-            >
-              {equation}
-            </Text>
+            <View style={styles.inputWrapper}>
+              onTouchStart=
+              {() => {
+                // You might need to add a ref to your TextInput
+                if (inputRef.current) {
+                  inputRef.current.focus();
+                }
+              }}
+              <TextInput
+                style={[
+                  styles.equationText,
+                  !showingResult ? styles.boldText : styles.smallText,
+                  styles.hiddenInput,
+                ]}
+                value={equation}
+                onChangeText={handleEquationChange}
+                onSelectionChange={handleSelectionChange}
+                selection={{ start: cursorPosition, end: cursorPosition }}
+                placeholder="0"
+                placeholderTextColor="#666"
+                keyboardType="visible-password"
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+              {!showingResult && (
+                <View style={styles.cursorContainer} pointerEvents="none">
+                  <BlinkingCursor
+                    position={cursorPosition}
+                    text={equation || " "}
+                  />
+                </View>
+              )}
+            </View>
             <Text
               style={[
                 styles.displayText,
@@ -520,6 +653,7 @@ const Calculator = () => {
 };
 
 const styles = StyleSheet.create({
+  // Main container styles
   container: {
     flex: 1,
     backgroundColor: "#000",
@@ -533,6 +667,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingTop: 20,
   },
+
+  // Header styles
   header: {
     position: "absolute",
     top: 20,
@@ -542,6 +678,8 @@ const styles = StyleSheet.create({
     gap: 16,
     paddingHorizontal: 16,
   },
+
+  // Display styles
   displayWrapper: {
     marginBottom: 32,
     justifyContent: "flex-end",
@@ -555,8 +693,9 @@ const styles = StyleSheet.create({
     fontSize: 48,
     textAlign: "right",
     fontWeight: "300",
-    marginBottom: 8,
     height: 60,
+    padding: 0,
+    minWidth: 20,
   },
   displayText: {
     color: "#666",
@@ -565,6 +704,38 @@ const styles = StyleSheet.create({
     fontWeight: "300",
     height: 30,
   },
+
+  // Blinking cursor
+  inputWrapper: {
+    height: 60,
+    position: "relative",
+  },
+  cursorContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    alignItems: "center",
+    zIndex: 1,
+  },
+  cursor: {
+    color: "#0066ff",
+    fontWeight: "100",
+  },
+  hiddenInput: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    opacity: 0,
+    zIndex: 2,
+  },
+
+  // Text variations
   boldText: {
     color: "#fff",
     fontWeight: "500",
@@ -584,25 +755,28 @@ const styles = StyleSheet.create({
     fontSize: 24,
     height: 30,
   },
+
+  // Button grid and layout
   buttonGrid: {
-    gap: 8,
+    gap: 12,
     alignItems: "center",
+    paddingHorizontal: 12,
   },
   row: {
     flexDirection: "row",
     justifyContent: "space-between",
     width: "100%",
-    marginBottom: 8,
-    paddingHorizontal: 8,
+    gap: 12,
   },
+
+  // Button base styles
   button: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    flex: 1,
+    aspectRatio: 1,
+    borderRadius: 100,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#333",
-    margin: 2,
   },
   buttonText: {
     fontSize: 20,
@@ -610,15 +784,10 @@ const styles = StyleSheet.create({
     color: "#fff",
     textAlign: "center",
   },
-  scientificButtonText: {
-    fontSize: 18,
-    fontWeight: "400",
-  },
+
+  // Button variations
   numberButton: {
     backgroundColor: "#333",
-  },
-  scientificButton: {
-    backgroundColor: "#222",
   },
   operatorButton: {
     backgroundColor: "#666",
@@ -626,6 +795,48 @@ const styles = StyleSheet.create({
   equalButton: {
     backgroundColor: "#0066ff",
   },
+  scientificButton: {
+    backgroundColor: "#222",
+  },
+  backspaceButton: {
+    backgroundColor: "#666",
+  },
+  scientificModeButton: {
+    backgroundColor: "#222",
+  },
+
+  // Text variations for different button types
+  scientificButtonText: {
+    fontSize: 16,
+    fontWeight: "400",
+  },
+  specialCharacterText: {
+    fontSize: 22,
+    fontWeight: "400",
+  },
+  operatorSymbolText: {
+    fontSize: 24,
+    fontWeight: "500",
+  },
+
+  // State-specific styles
+  buttonPressed: {
+    opacity: 0.8,
+  },
+  buttonDisabled: {
+    opacity: 0.5,
+  },
+  buttonTextDisabled: {
+    color: "#999",
+  },
+  displayError: {
+    color: "#ff4444",
+  },
+  selectedModeText: {
+    color: "#0066ff",
+  },
+
+  // Mode toggle styles
   modeToggle: {
     padding: 8,
     backgroundColor: "transparent",
@@ -639,44 +850,6 @@ const styles = StyleSheet.create({
     height: 40,
     justifyContent: "center",
     alignItems: "center",
-  },
-  // Additional style for active/pressed state
-  buttonPressed: {
-    opacity: 0.8,
-  },
-  // Style for disabled buttons
-  buttonDisabled: {
-    opacity: 0.5,
-  },
-  // Style for button text when disabled
-  buttonTextDisabled: {
-    color: "#999",
-  },
-  // Style for error state in display
-  displayError: {
-    color: "#ff4444",
-  },
-  // Style for parentheses and special characters
-  specialCharacterText: {
-    fontSize: 22,
-    fontWeight: "400",
-  },
-  // Style for operator symbols
-  operatorSymbolText: {
-    fontSize: 24,
-    fontWeight: "500",
-  },
-  // Specific style for backspace button
-  backspaceButton: {
-    backgroundColor: "#666",
-  },
-  // Style for buttons in scientific mode
-  scientificModeButton: {
-    backgroundColor: "#222",
-  },
-  // Style for currently selected angle mode (rad/deg)
-  selectedModeText: {
-    color: "#0066ff",
   },
 });
 
