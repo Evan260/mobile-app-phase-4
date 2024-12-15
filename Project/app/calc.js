@@ -197,6 +197,10 @@ const Calculator = () => {
 
   const evaluateExpression = (expr) => {
     try {
+      // Add implicit multiplication for constants
+      expr = expr.replace(/(\d+)([πe])/g, "$1×$2");
+      expr = expr.replace(/([πe])(\d+)/g, "$1×$2");
+
       // Replace constants first
       expr = expr.replace(/π/g, Math.PI.toString());
       expr = expr.replace(/e/g, Math.E.toString());
