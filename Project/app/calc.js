@@ -200,9 +200,14 @@ const Calculator = () => {
 
   const evaluateExpression = (expr, mode = isRadianMode) => {
     try {
-      // Add implicit multiplication for constants
-      expr = expr.replace(/(\d+)([πe])/g, "$1×$2");
-      expr = expr.replace(/([πe])(\d+)/g, "$1×$2");
+      // Add implicit multiplication for constants and operations
+      expr = expr.replace(/(\d+)([πe√])/g, "$1×$2"); // Number followed by π, e, or √
+      expr = expr.replace(/([πe])(\d+)/g, "$1×$2"); // π or e followed by number
+      expr = expr.replace(/(\))(\d+|[πe√])/g, "$1×$2"); // ) followed by number or operator
+      expr = expr.replace(/(\d+|\))(\()/g, "$1×$2"); // Number or ) followed by (
+
+      // Handle consecutive square roots
+      expr = expr.replace(/√√/g, "√×√");
 
       // Replace constants first
       expr = expr.replace(/π/g, Math.PI.toString());
