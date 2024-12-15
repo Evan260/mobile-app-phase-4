@@ -359,6 +359,7 @@ const Calculator = () => {
       throw new Error(error.message || "Invalid expression");
     }
   };
+
   const calculate = () => {
     try {
       if (!equation) return;
@@ -394,11 +395,32 @@ const Calculator = () => {
     </TouchableOpacity>
   );
 
+  const SqrtButton = ({ onClick }) => (
+    <TouchableOpacity
+      style={[styles.button, styles.numberButton]}
+      onPress={onClick}
+    >
+      <View style={styles.trigButtonContent}>
+        {isInverseMode ? (
+          <View style={styles.superContainer}>
+            <Text style={styles.buttonText}>x</Text>
+            <Text style={styles.superscriptText}>2</Text>
+          </View>
+        ) : (
+          <Text style={styles.buttonText}>√</Text>
+        )}
+      </View>
+    </TouchableOpacity>
+  );
+
   const formatEquationDisplay = (text) => {
-    // Replace inverse trig functions with superscript version
-    return text.replace(/(sin|cos|tan)-1\(/g, (match, func) => {
+    // Handle inverse trig functions
+    let formatted = text.replace(/(sin|cos|tan)-1\(/g, (match, func) => {
       return `${func}\u207B\u00B9(`; // Using unicode superscript characters
     });
+    // Handle squared numbers using superscript 2
+    formatted = formatted.replace(/\^2/g, "\u00B2");
+    return formatted;
   };
 
   const handleScientificFunction = (func) => {
@@ -407,15 +429,39 @@ const Calculator = () => {
 
     switch (func) {
       case "sqrt":
-        if (showingResult || !equation) {
-          newEquation = "√";
-          newPosition = 1;
+        if (isInverseMode) {
+          // Handle x²
+          if (showingResult) {
+            // If showing result, add square to the result
+            newEquation = display + "^2";
+            newPosition = newEquation.length;
+          } else {
+            // Check if there's a valid number or expression to square
+            const beforeCursor = equation.slice(0, cursorPosition);
+            const hasValidBase = /[\d)πe]$/.test(beforeCursor);
+
+            if (!hasValidBase) {
+              return; // Don't add square if there's no valid base
+            }
+
+            newEquation =
+              equation.slice(0, cursorPosition) +
+              "^2" +
+              equation.slice(cursorPosition);
+            newPosition = cursorPosition + 2;
+          }
         } else {
-          newEquation =
-            equation.slice(0, cursorPosition) +
-            "√" +
-            equation.slice(cursorPosition);
-          newPosition = cursorPosition + 1;
+          // Original √ functionality
+          if (showingResult || !equation) {
+            newEquation = "√";
+            newPosition = 1;
+          } else {
+            newEquation =
+              equation.slice(0, cursorPosition) +
+              "√" +
+              equation.slice(cursorPosition);
+            newPosition = cursorPosition + 1;
+          }
         }
         break;
 
@@ -530,6 +576,7 @@ const Calculator = () => {
       "tan(",
       "log(",
       "ln(",
+      "^2",
     ];
     const beforeCursor = equation.slice(0, cursorPosition);
     let newEquation;
@@ -716,10 +763,7 @@ const Calculator = () => {
                 />
               </View>
               <View style={styles.row}>
-                <CalcButton
-                  label="√"
-                  onClick={() => handleScientificFunction("sqrt")}
-                />
+                <SqrtButton onClick={() => handleScientificFunction("sqrt")} />
                 <CalcButton label="4" onClick={() => handleNumber("4")} />
                 <CalcButton label="5" onClick={() => handleNumber("5")} />
                 <CalcButton label="6" onClick={() => handleNumber("6")} />
@@ -945,6 +989,11 @@ const styles = StyleSheet.create({
   trigButtonContent: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
+  },
+  superContainer: {
+    flexDirection: "row",
+    alignItems: "flex-start",
     justifyContent: "center",
   },
   superscriptText: {
