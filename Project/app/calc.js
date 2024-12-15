@@ -98,7 +98,7 @@ const Calculator = () => {
 
       // Remove trailing operator for calculation
       let tempExpr = expr;
-      const endsWithOperator = /[+\-×÷]$/.test(tempExpr);
+      const endsWithOperator = /[+\-×÷^]$/.test(tempExpr);
 
       if (endsWithOperator) {
         tempExpr = tempExpr.slice(0, -1);
@@ -208,6 +208,19 @@ const Calculator = () => {
       expr = expr.replace(/π/g, Math.PI.toString());
       expr = expr.replace(/e/g, Math.E.toString());
 
+      // Handle square roots before other operations
+      while (expr.includes("√")) {
+        expr = expr.replace(/√(-?\d*\.?\d+)/g, (match, number) => {
+          const value = parseFloat(number);
+          if (value < 0) throw new Error("Invalid input");
+          return Math.sqrt(value).toString();
+        });
+        // Handle remaining √ without numbers (incomplete expressions)
+        if (expr.includes("√")) {
+          expr = expr.replace(/√/g, "");
+        }
+      }
+
       // Handle scientific functions with parentheses
       while (/(?:sin|cos|tan|log|ln)\([^()]*\)/.test(expr)) {
         expr = expr.replace(/sin\(([^()]*)\)/g, (_, num) => {
@@ -256,6 +269,22 @@ const Calculator = () => {
           // Handle negative numbers in nested expressions
           return result < 0 ? `(${result})` : result;
         });
+      }
+
+      // Handle exponentiation first (right to left)
+      while (expr.includes("^")) {
+        expr = expr.replace(
+          /(-?\d*\.?\d+)\^(-?\d*\.?\d+)/g,
+          (match, base, exponent) => {
+            const result = Math.pow(parseFloat(base), parseFloat(exponent));
+            return result.toString();
+          }
+        );
+      }
+
+      // Check for remaining ^ operators (incomplete expressions)
+      if (expr.includes("^")) {
+        return expr.replace(/\^/g, ""); // Remove incomplete ^ operators
       }
 
       // Split by operators while preserving negative signs
