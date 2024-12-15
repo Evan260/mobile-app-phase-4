@@ -501,21 +501,33 @@ const Calculator = () => {
   const handleBackspace = () => {
     if (!showingResult) {
       let newEquation = equation;
+      let newPosition = cursorPosition;
 
-      // Check for function names to delete
+      // Don't do anything if cursor is at the start
+      if (cursorPosition === 0) return;
+
+      // Check for function names to delete when cursor is right after them
       const functions = ["sin(", "cos(", "tan(", "log(", "ln("];
       for (const func of functions) {
-        if (equation.endsWith(func)) {
-          newEquation = equation.slice(0, -func.length);
+        if (equation.slice(0, cursorPosition).endsWith(func)) {
+          newEquation =
+            equation.slice(0, cursorPosition - func.length) +
+            equation.slice(cursorPosition);
+          newPosition = cursorPosition - func.length;
           setEquation(newEquation);
+          setCursorPosition(newPosition);
           setDisplay(calculateLiveResult(newEquation));
           return;
         }
       }
 
-      // Normal backspace behavior
-      newEquation = equation.slice(0, -1);
+      // Normal backspace behavior - remove character before cursor
+      newEquation =
+        equation.slice(0, cursorPosition - 1) + equation.slice(cursorPosition);
+      newPosition = cursorPosition - 1;
+
       setEquation(newEquation);
+      setCursorPosition(newPosition);
       setDisplay(calculateLiveResult(newEquation));
     }
   };
