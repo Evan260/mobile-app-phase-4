@@ -187,20 +187,6 @@ const Calculator = () => {
     setShowingResult(false);
   };
 
-  const factorial = (n) => {
-    // Handle edge cases
-    if (n < 0) return "Error";
-    if (n === 0 || n === 1) return 1;
-    if (n > 170) return Infinity; // JavaScript's limit for factorial calculations
-
-    // Calculate factorial
-    let result = 1;
-    for (let i = 2; i <= n; i++) {
-      result *= i;
-    }
-    return result;
-  };
-
   const evaluateExpression = (expr, mode = isRadianMode) => {
     try {
       if (!expr) return "";
@@ -299,6 +285,24 @@ const Calculator = () => {
           const result = Math.tan(angleInRad);
           return Math.abs(result) < 1e-10 ? "0" : result.toString();
         });
+      }
+
+      // Handle inverse logarithms (10^x and e^x) before regular logarithms
+      while (/(?:10|e)\^(-?\d*\.?\d+|\([^()]*\))/.test(tempExpr)) {
+        tempExpr = tempExpr.replace(
+          /10\^(-?\d*\.?\d+|\([^()]*\))/g,
+          (_, num) => {
+            const value = parseFloat(evaluateExpression(num, mode));
+            return Math.pow(10, value).toString();
+          }
+        );
+        tempExpr = tempExpr.replace(
+          /e\^(-?\d*\.?\d+|\([^()]*\))/g,
+          (_, num) => {
+            const value = parseFloat(evaluateExpression(num, mode));
+            return Math.exp(value).toString();
+          }
+        );
       }
 
       // Handle logarithms
@@ -413,6 +417,42 @@ const Calculator = () => {
     </TouchableOpacity>
   );
 
+  const LogButton = ({ onClick }) => (
+    <TouchableOpacity
+      style={[styles.button, styles.numberButton]}
+      onPress={onClick}
+    >
+      <View style={styles.trigButtonContent}>
+        {isInverseMode ? (
+          <View style={styles.superContainer}>
+            <Text style={styles.buttonText}>10</Text>
+            <Text style={styles.superscriptText}>x</Text>
+          </View>
+        ) : (
+          <Text style={styles.buttonText}>log</Text>
+        )}
+      </View>
+    </TouchableOpacity>
+  );
+
+  const LnButton = ({ onClick }) => (
+    <TouchableOpacity
+      style={[styles.button, styles.numberButton]}
+      onPress={onClick}
+    >
+      <View style={styles.trigButtonContent}>
+        {isInverseMode ? (
+          <View style={styles.superContainer}>
+            <Text style={styles.buttonText}>e</Text>
+            <Text style={styles.superscriptText}>x</Text>
+          </View>
+        ) : (
+          <Text style={styles.buttonText}>ln</Text>
+        )}
+      </View>
+    </TouchableOpacity>
+  );
+
   const formatEquationDisplay = (text) => {
     // Handle inverse trig functions
     let formatted = text.replace(/(sin|cos|tan)-1\(/g, (match, func) => {
@@ -483,12 +523,35 @@ const Calculator = () => {
         break;
 
       case "log":
-      case "ln":
         if (showingResult) {
-          newEquation = func + "(" + display + ")";
+          if (isInverseMode) {
+            // 10^x
+            newEquation = "10^(" + display + ")";
+          } else {
+            newEquation = "log(" + display + ")";
+          }
           newPosition = newEquation.length;
         } else {
-          const funcStr = func + "(";
+          const funcStr = isInverseMode ? "10^(" : "log(";
+          newEquation =
+            equation.slice(0, cursorPosition) +
+            funcStr +
+            equation.slice(cursorPosition);
+          newPosition = cursorPosition + funcStr.length;
+        }
+        break;
+
+      case "ln":
+        if (showingResult) {
+          if (isInverseMode) {
+            // e^x
+            newEquation = "e^(" + display + ")";
+          } else {
+            newEquation = "ln(" + display + ")";
+          }
+          newPosition = newEquation.length;
+        } else {
+          const funcStr = isInverseMode ? "e^(" : "ln(";
           newEquation =
             equation.slice(0, cursorPosition) +
             funcStr +
@@ -576,6 +639,8 @@ const Calculator = () => {
       "tan(",
       "log(",
       "ln(",
+      "10^(",
+      "e^(",
       "^2",
     ];
     const beforeCursor = equation.slice(0, cursorPosition);
@@ -721,14 +786,8 @@ const Calculator = () => {
                 />
               </View>
               <View style={styles.row}>
-                <CalcButton
-                  label="log"
-                  onClick={() => handleScientificFunction("log")}
-                />
-                <CalcButton
-                  label="ln"
-                  onClick={() => handleScientificFunction("ln")}
-                />
+                <LogButton onClick={() => handleScientificFunction("log")} />
+                <LnButton onClick={() => handleScientificFunction("ln")} />
                 <CalcButton label="(" onClick={() => handleNumber("(")} />
                 <CalcButton label=")" onClick={() => handleNumber(")")} />
                 <CalcButton
