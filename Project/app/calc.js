@@ -214,59 +214,83 @@ const Calculator = () => {
           const value = parseFloat(evaluateExpression(num, mode));
           // Convert degrees to radians if in degree mode
           const angleInRad = mode ? value : degToRad(value);
-          return Math.sin(angleInRad).toString();
+          const result = Math.sin(angleInRad);
+          // Handle negative zero
+          return Math.abs(result) < 1e-10 ? "0" : result.toString();
         });
         expr = expr.replace(/cos\(([^()]*)\)/g, (_, num) => {
           const value = parseFloat(evaluateExpression(num, mode));
           // Convert degrees to radians if in degree mode
           const angleInRad = mode ? value : degToRad(value);
-          return Math.cos(angleInRad).toString();
+          const result = Math.cos(angleInRad);
+          // Handle negative zero
+          return Math.abs(result) < 1e-10 ? "0" : result.toString();
         });
         expr = expr.replace(/tan\(([^()]*)\)/g, (_, num) => {
           const value = parseFloat(evaluateExpression(num, mode));
           // Convert degrees to radians if in degree mode
           const angleInRad = mode ? value : degToRad(value);
-          return Math.tan(angleInRad).toString();
+          const result = Math.tan(angleInRad);
+          // Handle negative zero and check for undefined (90 degrees)
+          if (Math.abs(Math.cos(angleInRad)) < 1e-10) {
+            throw new Error("Undefined");
+          }
+          return Math.abs(result) < 1e-10 ? "0" : result.toString();
         });
-        expr = expr.replace(/log\(([^()]*)\)/g, (_, num) =>
-          Math.log10(parseFloat(evaluateExpression(num, mode))).toString()
-        );
-        expr = expr.replace(/ln\(([^()]*)\)/g, (_, num) =>
-          Math.log(parseFloat(evaluateExpression(num, mode))).toString()
-        );
+        expr = expr.replace(/log\(([^()]*)\)/g, (_, num) => {
+          const value = parseFloat(evaluateExpression(num, mode));
+          if (value <= 0) throw new Error("Invalid input");
+          return Math.log10(value).toString();
+        });
+        expr = expr.replace(/ln\(([^()]*)\)/g, (_, num) => {
+          const value = parseFloat(evaluateExpression(num, mode));
+          if (value <= 0) throw new Error("Invalid input");
+          return Math.log(value).toString();
+        });
       }
 
-      // Handle square root (without parentheses)
-      expr = expr.replace(/√(\d*\.?\d*)/g, (_, num) =>
-        Math.sqrt(parseFloat(num)).toString()
-      );
-
-      // Handle inverse
-      expr = expr.replace(/1\/\(([^()]*)\)/g, (_, num) =>
-        (1 / parseFloat(evaluateExpression(num))).toString()
-      );
-
-      // Handle factorial
-      expr = expr.replace(/(\d+)!/g, (match, num) => {
-        const factorialResult = factorial(parseInt(num));
-        if (factorialResult === "Error") throw new Error("Invalid factorial");
-        return factorialResult.toString();
-      });
-
-      // Handle nested parentheses
+      // Handle nested parentheses and remaining operations
       while (expr.includes("(")) {
-        expr = expr.replace(/\(([^()]*)\)/g, (_, inner) =>
-          evaluateExpression(inner)
-        );
+        expr = expr.replace(/\(([^()]*)\)/g, (_, inner) => {
+          const result = evaluateExpression(inner);
+          // Handle negative numbers in nested expressions
+          return result < 0 ? `(${result})` : result;
+        });
       }
 
-      // Split by operators while keeping the operators in the array
-      let tokens = expr.split(/([+\-×÷^])/);
+      // Split by operators while preserving negative signs
+      const tokens = [];
+      let currentToken = "";
+      let isNegative = false;
 
-      // Remove any empty strings from the array
-      tokens = tokens.filter((token) => token !== "");
+      for (let i = 0; i < expr.length; i++) {
+        const char = expr[i];
+        if ("+-×÷".includes(char)) {
+          if (currentToken !== "") {
+            tokens.push(currentToken);
+            currentToken = "";
+          }
+          // Handle negative numbers at the start or after operators
+          if (char === "-" && (i === 0 || "+-×÷".includes(expr[i - 1]))) {
+            isNegative = true;
+          } else {
+            tokens.push(char);
+            isNegative = false;
+          }
+        } else {
+          if (isNegative) {
+            currentToken = "-" + char;
+            isNegative = false;
+          } else {
+            currentToken += char;
+          }
+        }
+      }
+      if (currentToken !== "") {
+        tokens.push(currentToken);
+      }
 
-      // Handle multiplication and division first
+      // Handle multiplication and division
       let i = 1;
       while (i < tokens.length) {
         if (tokens[i] === "×" || tokens[i] === "÷") {
@@ -277,7 +301,7 @@ const Calculator = () => {
           if (tokens[i] === "×") {
             result = num1 * num2;
           } else {
-            if (num2 === 0) throw new Error("Division by zero");
+            if (Math.abs(num2) < 1e-10) throw new Error("Division by zero");
             result = num1 / num2;
           }
 
@@ -300,9 +324,10 @@ const Calculator = () => {
         }
       }
 
-      return result;
+      // Handle very small numbers near zero
+      return Math.abs(result) < 1e-10 ? 0 : result;
     } catch (error) {
-      throw new Error("Invalid expression");
+      throw new Error(error.message || "Invalid expression");
     }
   };
 
