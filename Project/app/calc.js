@@ -227,6 +227,21 @@ const Calculator = () => {
       // Don't evaluate if it's just an operator
       if (!/[0-9πe]/.test(tempExpr)) return "";
 
+      // Handle factorial before other operations
+      while (tempExpr.includes("!")) {
+        tempExpr = tempExpr.replace(/(\d+\.?\d*)!/g, (match, number) => {
+          const n = parseInt(number);
+          if (n !== parseFloat(number))
+            throw new Error("Factorial requires whole numbers");
+          if (n < 0) throw new Error("Invalid input");
+          if (n === 0 || n === 1) return "1";
+          if (n > 170) return "Infinity";
+          let result = 1;
+          for (let i = 2; i <= n; i++) result *= i;
+          return `(${result})`; // Wrap factorial result in parentheses
+        });
+      }
+
       // Handle inverse trig functions first
       while (/(?:sin|cos|tan)-1\([^()]*\)/.test(tempExpr)) {
         tempExpr = tempExpr.replace(/sin-1\(([^()]*)\)/g, (_, num) => {
@@ -283,21 +298,6 @@ const Calculator = () => {
           }
           const result = Math.tan(angleInRad);
           return Math.abs(result) < 1e-10 ? "0" : result.toString();
-        });
-      }
-
-      // Handle factorial before other operations
-      while (tempExpr.includes("!")) {
-        tempExpr = tempExpr.replace(/(-?\d+\.?\d*)\!/g, (match, number) => {
-          const n = parseInt(number);
-          if (n !== parseFloat(number))
-            throw new Error("Factorial requires whole numbers");
-          if (n < 0) throw new Error("Invalid input");
-          if (n === 0 || n === 1) return "1";
-          if (n > 170) return "Infinity";
-          let result = 1;
-          for (let i = 2; i <= n; i++) result *= i;
-          return result.toString();
         });
       }
 
