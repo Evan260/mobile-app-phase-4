@@ -200,6 +200,21 @@ const Calculator = () => {
 
   const evaluateExpression = (expr, mode = isRadianMode) => {
     try {
+      // Add implicit multiplication after factorials
+      expr = expr.replace(/(\d+)!(\d+)/g, "$1!×$2"); // Add × between factorial and number
+      expr = expr.replace(/(\d+)!([πe√])/g, "$1!×$2"); // Add × between factorial and constants/functions
+
+      // Handle factorials before other operations
+      while (expr.includes("!")) {
+        expr = expr.replace(/(-?\d+\.?\d*)\!/g, (match, number) => {
+          // Convert to integer since factorial only works with whole numbers
+          const n = parseInt(number);
+          if (n !== parseFloat(number))
+            throw new Error("Factorial requires whole numbers");
+          return factorial(n).toString();
+        });
+      }
+
       // Add implicit multiplication for constants and operations
       expr = expr.replace(/(\d+)([πe√])/g, "$1×$2"); // Number followed by π, e, or √
       expr = expr.replace(/([πe])(\d+)/g, "$1×$2"); // π or e followed by number
