@@ -13,10 +13,18 @@ const Calculator = () => {
   const [display, setDisplay] = useState("");
   const [equation, setEquation] = useState("");
   const [showingResult, setShowingResult] = useState(false);
-  const [isNewNumber, setIsNewNumber] = useState(true);
   const [isScientific, setIsScientific] = useState(false);
   const [cursorPosition, setCursorPosition] = useState(0);
-  const [isFocused, setIsFocused] = useState(false);
+
+  const formatNumberWithCommas = (number) => {
+    // Handle decimal numbers
+    const parts = number.toString().split(".");
+    const wholePart = parts[0];
+    const decimalPart = parts.length > 1 ? "." + parts[1] : "";
+
+    // Add commas to the whole number part
+    return wholePart.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + decimalPart;
+  };
 
   const handleEquationChange = (text) => {
     setEquation(text);
@@ -51,11 +59,27 @@ const Calculator = () => {
       return () => animation.stop();
     }, []);
 
+    // Format numbers in the equation while preserving operators and functions
+    const formatEquation = (eq) => {
+      return eq.replace(/\d+(\.\d+)?/g, (match) =>
+        formatNumberWithCommas(match)
+      );
+    };
+
+    const formattedText = formatEquation(text);
+
+    // Calculate cursor position adjustment due to added commas
+    const originalBeforeCursor = text.slice(0, position);
+    const formattedBeforeCursor = formatEquation(originalBeforeCursor);
+    const positionAdjustment =
+      formattedBeforeCursor.length - originalBeforeCursor.length;
+    const adjustedPosition = position + positionAdjustment;
+
     return (
       <Text style={[styles.equationText, styles.boldText]}>
-        {text.slice(0, position)}
+        {formattedText.slice(0, adjustedPosition)}
         <Animated.Text style={[styles.cursor, { opacity }]}>|</Animated.Text>
-        {text.slice(position) || " "}
+        {formattedText.slice(adjustedPosition) || " "}
       </Text>
     );
   };
@@ -95,7 +119,7 @@ const Calculator = () => {
       // Don't show NaN or invalid results
       if (isNaN(formattedResult)) return "";
 
-      return formattedResult.toString();
+      return formatNumberWithCommas(formattedResult).toString();
     } catch (error) {
       return "";
     }
@@ -115,7 +139,6 @@ const Calculator = () => {
       setEquation(newEquation);
       setCursorPosition(cursorPosition + num.length);
       setDisplay(calculateLiveResult(newEquation));
-      setIsNewNumber(false);
     }
   };
 
@@ -134,7 +157,6 @@ const Calculator = () => {
       setCursorPosition(cursorPosition + operator.length);
       setDisplay(calculateLiveResult(newEquation));
     }
-    setIsNewNumber(true);
     setShowingResult(false);
   };
 
@@ -156,7 +178,6 @@ const Calculator = () => {
     setEquation(newEquation);
     setCursorPosition(newPosition);
     setDisplay(calculateLiveResult(newEquation));
-    setIsNewNumber(true);
     setShowingResult(false);
   };
 
@@ -271,12 +292,10 @@ const Calculator = () => {
         setDisplay(formattedResult.toString());
       }
       setShowingResult(true);
-      setIsNewNumber(true);
     } catch (error) {
       setDisplay("Error");
       setEquation("");
       setShowingResult(true);
-      setIsNewNumber(true);
     }
   };
 
@@ -374,7 +393,6 @@ const Calculator = () => {
     setCursorPosition(newPosition);
     setShowingResult(false);
     setDisplay("");
-    setIsNewNumber(false);
   };
 
   const clear = () => {
@@ -382,7 +400,6 @@ const Calculator = () => {
     setEquation("");
     setCursorPosition(0);
     setShowingResult(false);
-    setIsNewNumber(true);
   };
 
   const handleBackspace = () => {
@@ -448,7 +465,6 @@ const Calculator = () => {
             <View style={styles.inputWrapper}>
               onTouchStart=
               {() => {
-                // You might need to add a ref to your TextInput
                 if (inputRef.current) {
                   inputRef.current.focus();
                 }
