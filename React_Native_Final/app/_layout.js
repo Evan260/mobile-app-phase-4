@@ -10,6 +10,7 @@ import AppearanceScreen from './screen/appearanceScreen';
 import Help from './screen/help';
 import Privacy from './screen/privacy';
 import Login from './login'; 
+import HistoryScreen from './historyScreen';
 
 const Stack = createStackNavigator();
 
@@ -32,7 +33,23 @@ const CalculatorStack = () => (
         ),
       })}
     />
-
+    <Stack.Screen
+          name="History"
+          component={HistoryScreen}
+          options={({ navigation }) => ({
+            headerStyle: {
+              backgroundColor: 'black',
+            },
+            headerTintColor: 'white',
+            headerTitle: '',
+            headerLeft: () => (
+              <TouchableOpacity onPress={() => navigation.navigate('calc')}>
+                <Icon name="close" size={30} color="white" />
+              </TouchableOpacity>
+            ),
+          })}
+          
+        />
     <Stack.Screen
       name="Settings"
       component={Settings}
