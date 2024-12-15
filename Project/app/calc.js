@@ -15,6 +15,9 @@ const Calculator = () => {
   const [showingResult, setShowingResult] = useState(false);
   const [isScientific, setIsScientific] = useState(false);
   const [cursorPosition, setCursorPosition] = useState(0);
+  const [isRadianMode, setIsRadianMode] = useState(false); // Default to degrees
+
+  const degToRad = (degrees) => (degrees * Math.PI) / 180;
 
   const formatNumberWithCommas = (number) => {
     // Handle decimal numbers
@@ -84,7 +87,7 @@ const Calculator = () => {
     );
   };
 
-  const calculateLiveResult = (expr) => {
+  const calculateLiveResult = (expr, mode = isRadianMode) => {
     try {
       if (!expr) return "";
 
@@ -112,8 +115,8 @@ const Calculator = () => {
       // Don't evaluate if it's just an operator
       if (!/[0-9πe]/.test(tempExpr)) return "";
 
-      // Evaluate the expression
-      const result = evaluateExpression(tempExpr);
+      // Pass the mode to evaluateExpression
+      const result = evaluateExpression(tempExpr, mode);
       const formattedResult = parseFloat(result.toFixed(10));
 
       // Don't show NaN or invalid results
@@ -195,7 +198,7 @@ const Calculator = () => {
     return result;
   };
 
-  const evaluateExpression = (expr) => {
+  const evaluateExpression = (expr, mode = isRadianMode) => {
     try {
       // Add implicit multiplication for constants
       expr = expr.replace(/(\d+)([πe])/g, "$1×$2");
@@ -207,26 +210,29 @@ const Calculator = () => {
 
       // Handle scientific functions with parentheses
       while (/(?:sin|cos|tan|log|ln)\([^()]*\)/.test(expr)) {
-        expr = expr.replace(/sin\(([^()]*)\)/g, (_, num) =>
-          Math.sin(
-            (parseFloat(evaluateExpression(num)) * Math.PI) / 180
-          ).toString()
-        );
-        expr = expr.replace(/cos\(([^()]*)\)/g, (_, num) =>
-          Math.cos(
-            (parseFloat(evaluateExpression(num)) * Math.PI) / 180
-          ).toString()
-        );
-        expr = expr.replace(/tan\(([^()]*)\)/g, (_, num) =>
-          Math.tan(
-            (parseFloat(evaluateExpression(num)) * Math.PI) / 180
-          ).toString()
-        );
+        expr = expr.replace(/sin\(([^()]*)\)/g, (_, num) => {
+          const value = parseFloat(evaluateExpression(num, mode));
+          // Convert degrees to radians if in degree mode
+          const angleInRad = mode ? value : degToRad(value);
+          return Math.sin(angleInRad).toString();
+        });
+        expr = expr.replace(/cos\(([^()]*)\)/g, (_, num) => {
+          const value = parseFloat(evaluateExpression(num, mode));
+          // Convert degrees to radians if in degree mode
+          const angleInRad = mode ? value : degToRad(value);
+          return Math.cos(angleInRad).toString();
+        });
+        expr = expr.replace(/tan\(([^()]*)\)/g, (_, num) => {
+          const value = parseFloat(evaluateExpression(num, mode));
+          // Convert degrees to radians if in degree mode
+          const angleInRad = mode ? value : degToRad(value);
+          return Math.tan(angleInRad).toString();
+        });
         expr = expr.replace(/log\(([^()]*)\)/g, (_, num) =>
-          Math.log10(parseFloat(evaluateExpression(num))).toString()
+          Math.log10(parseFloat(evaluateExpression(num, mode))).toString()
         );
         expr = expr.replace(/ln\(([^()]*)\)/g, (_, num) =>
-          Math.log(parseFloat(evaluateExpression(num))).toString()
+          Math.log(parseFloat(evaluateExpression(num, mode))).toString()
         );
       }
 
@@ -424,6 +430,15 @@ const Calculator = () => {
     setShowingResult(false);
   };
 
+  const handleAngleModeChange = (newMode) => {
+    setIsRadianMode(newMode);
+    if (equation) {
+      // Pass the new mode directly to calculateLiveResult
+      const newResult = calculateLiveResult(equation, newMode);
+      setDisplay(newResult);
+    }
+  };
+
   const handleBackspace = () => {
     if (!showingResult) {
       let newEquation = equation;
@@ -451,6 +466,7 @@ const Calculator = () => {
     onClick,
     isOperator = false,
     isEqual = false,
+    isActive = false,
   }) => (
     <TouchableOpacity
       style={[
@@ -463,7 +479,14 @@ const Calculator = () => {
       ]}
       onPress={onClick}
     >
-      <Text style={styles.buttonText}>{label}</Text>
+      <Text
+        style={[
+          styles.buttonText,
+          isActive && styles.activeButtonText, // Apply active style when button is active
+        ]}
+      >
+        {label}
+      </Text>
     </TouchableOpacity>
   );
 
@@ -547,11 +570,13 @@ const Calculator = () => {
                 />
                 <CalcButton
                   label="rad"
-                  onClick={() => handleScientificFunction("rad")}
+                  onClick={() => handleAngleModeChange(true)}
+                  isActive={isRadianMode}
                 />
                 <CalcButton
                   label="deg"
-                  onClick={() => handleScientificFunction("deg")}
+                  onClick={() => handleAngleModeChange(false)}
+                  isActive={!isRadianMode}
                 />
               </View>
               <View style={styles.row}>
@@ -841,6 +866,10 @@ const styles = StyleSheet.create({
   },
   scientificModeButton: {
     backgroundColor: "#222",
+  },
+  activeButtonText: {
+    color: "#0066ff", // Blue color for active state
+    fontWeight: "600",
   },
 
   // Text variations for different button types
