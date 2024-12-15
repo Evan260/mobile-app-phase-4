@@ -181,6 +181,20 @@ const Calculator = () => {
     setShowingResult(false);
   };
 
+  const factorial = (n) => {
+    // Handle edge cases
+    if (n < 0) return "Error";
+    if (n === 0 || n === 1) return 1;
+    if (n > 170) return Infinity; // JavaScript's limit for factorial calculations
+
+    // Calculate factorial
+    let result = 1;
+    for (let i = 2; i <= n; i++) {
+      result *= i;
+    }
+    return result;
+  };
+
   const evaluateExpression = (expr) => {
     try {
       // Replace constants first
@@ -223,7 +237,11 @@ const Calculator = () => {
       );
 
       // Handle factorial
-      expr = expr.replace(/(\d+)!/g, (_, num) => factorial(parseInt(num)));
+      expr = expr.replace(/(\d+)!/g, (match, num) => {
+        const factorialResult = factorial(parseInt(num));
+        if (factorialResult === "Error") throw new Error("Invalid factorial");
+        return factorialResult.toString();
+      });
 
       // Handle nested parentheses
       while (expr.includes("(")) {
@@ -392,7 +410,7 @@ const Calculator = () => {
     setEquation(newEquation);
     setCursorPosition(newPosition);
     setShowingResult(false);
-    setDisplay("");
+    setDisplay(calculateLiveResult(newEquation));
   };
 
   const clear = () => {
