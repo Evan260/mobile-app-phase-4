@@ -264,21 +264,21 @@ const Calculator = () => {
       while (/(?:sin|cos|tan)\([^()]*\)/.test(tempExpr)) {
         tempExpr = tempExpr.replace(/sin\(([^()]*)\)/g, (_, num) => {
           const value = parseFloat(evaluateExpression(num, mode));
-          const angleInRad = mode ? value : (value * Math.PI) / 180;
+          const angleInRad = mode ? value : degToRad(value);
           const result = Math.sin(angleInRad);
           return Math.abs(result) < 1e-10 ? "0" : result.toString();
         });
 
         tempExpr = tempExpr.replace(/cos\(([^()]*)\)/g, (_, num) => {
           const value = parseFloat(evaluateExpression(num, mode));
-          const angleInRad = mode ? value : (value * Math.PI) / 180;
+          const angleInRad = mode ? value : degToRad(value);
           const result = Math.cos(angleInRad);
           return Math.abs(result) < 1e-10 ? "0" : result.toString();
         });
 
         tempExpr = tempExpr.replace(/tan\(([^()]*)\)/g, (_, num) => {
           const value = parseFloat(evaluateExpression(num, mode));
-          const angleInRad = mode ? value : (value * Math.PI) / 180;
+          const angleInRad = mode ? value : degToRad(value);
           if (Math.abs(Math.cos(angleInRad)) < 1e-10) {
             throw new Error("Undefined");
           }
