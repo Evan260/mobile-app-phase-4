@@ -333,7 +333,35 @@ const Calculator = () => {
         }
       }
 
-      // Add implicit multiplication
+      // Handle percentage calculations after exponents
+      expr = expr.replace(/(\d+\.?\d*)%(?!\^)/g, (_, num) => {
+        return `(${num}/100)`;
+      });
+
+      // Handle exponents with implicit multiplication
+      while (tempExpr.includes("^")) {
+        tempExpr = tempExpr.replace(
+          /(-?\d*\.?\d+)\^(-?\d*\.?\d+)(?=\d)/g,
+          (_, base, exp) => {
+            const result = Math.pow(parseFloat(base), parseFloat(exp));
+            return `${result}×`; // Add multiplication operator after exponent
+          }
+        );
+
+        tempExpr = tempExpr.replace(
+          /(-?\d*\.?\d+)\^(-?\d*\.?\d+)/g,
+          (_, base, exp) => {
+            return Math.pow(parseFloat(base), parseFloat(exp));
+          }
+        );
+      }
+
+      // Handle remaining percentages after all operations
+      tempExpr = tempExpr.replace(/(\d+\.?\d*)%/g, (_, num) => {
+        return `(${num}/100)`;
+      });
+
+      // Add implicit multiplication for remaining cases
       tempExpr = tempExpr.replace(/(\d+)([πe√])/g, "$1×$2");
       tempExpr = tempExpr.replace(/([πe])(\d+)/g, "$1×$2");
       tempExpr = tempExpr.replace(/(\))(\d+|[πe√])/g, "$1×$2");
@@ -342,16 +370,6 @@ const Calculator = () => {
       // Replace constants
       tempExpr = tempExpr.replace(/π/g, Math.PI.toString());
       tempExpr = tempExpr.replace(/e/g, Math.E.toString());
-
-      // Handle exponents (right to left)
-      while (tempExpr.includes("^")) {
-        tempExpr = tempExpr.replace(
-          /(-?\d*\.?\d+)\^(-?\d*\.?\d+)/g,
-          (match, base, exponent) => {
-            return Math.pow(parseFloat(base), parseFloat(exponent)).toString();
-          }
-        );
-      }
 
       // Evaluate remaining arithmetic
       const result = eval(tempExpr.replace(/×/g, "*").replace(/÷/g, "/"));
