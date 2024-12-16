@@ -367,10 +367,12 @@ const Calculator = () => {
       });
 
       // Add implicit multiplication for remaining cases
-      tempExpr = tempExpr.replace(/(\d+)([πe√])/g, "$1×$2");
-      tempExpr = tempExpr.replace(/([πe])(\d+)/g, "$1×$2");
-      tempExpr = tempExpr.replace(/(\))(\d+|[πe√])/g, "$1×$2");
-      tempExpr = tempExpr.replace(/(\d+|\))(\()/g, "$1×$2");
+      tempExpr = tempExpr.replace(/π(\d+)/g, "π×$1"); // π2 -> π×2
+      tempExpr = tempExpr.replace(/e(\d+)/g, "e×$1"); // e2 -> e×2
+      tempExpr = tempExpr.replace(/π\(/g, "π×("); // π(2) -> π×(2)
+      tempExpr = tempExpr.replace(/e\(/g, "e×("); // e(2) -> e×(2)
+      tempExpr = tempExpr.replace(/(\d+)π/g, "$1×π"); // 2π -> 2×π
+      tempExpr = tempExpr.replace(/(\d+)e/g, "$1×e"); // 2e -> 2×e
 
       // Replace constants
       tempExpr = tempExpr.replace(/π/g, Math.PI.toString());
