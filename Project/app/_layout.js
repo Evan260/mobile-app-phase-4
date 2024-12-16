@@ -1,4 +1,4 @@
-import React from "react";
+import HistoryScreen from "./screen/historyScreen";
 import { createStackNavigator } from "@react-navigation/stack";
 import { TouchableOpacity } from "react-native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
@@ -32,7 +32,22 @@ const CalculatorStack = () => (
         ),
       })}
     />
-
+    <Stack.Screen
+      name="History"
+      component={HistoryScreen}
+      options={({ navigation }) => ({
+        headerStyle: {
+          backgroundColor: "black",
+        },
+        headerTintColor: "white",
+        headerTitle: "",
+        headerLeft: () => (
+          <TouchableOpacity onPress={() => navigation.navigate("calc")}>
+            <Icon name="close" size={30} color="white" />
+          </TouchableOpacity>
+        ),
+      })}
+    />
     <Stack.Screen
       name="Settings"
       component={Settings}
