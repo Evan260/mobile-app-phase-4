@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
-const Calculator = () => {
+const Calculator = ({ navigation }) => {
   const [display, setDisplay] = useState("");
   const [equation, setEquation] = useState("");
   const [showingResult, setShowingResult] = useState(false);
@@ -17,6 +17,7 @@ const Calculator = () => {
   const [cursorPosition, setCursorPosition] = useState(0);
   const [isRadianMode, setIsRadianMode] = useState(false); // Default to degrees
   const [isInverseMode, setIsInverseMode] = useState(false);
+  const [history, setHistory] = useState([]);
 
   const degToRad = (degrees) => (degrees * Math.PI) / 180;
 
@@ -418,6 +419,10 @@ const Calculator = () => {
         setDisplay("Error");
       } else {
         setDisplay(formattedResult.toString());
+        setHistory((prevHistory) => [
+          ...prevHistory,
+          { equation, result: formattedResult.toString() },
+        ]);
       }
       setShowingResult(true);
     } catch (error) {
@@ -709,6 +714,10 @@ const Calculator = () => {
     setDisplay(calculateLiveResult(newEquation));
   };
 
+  const navigateToHistory = () => {
+    navigation.navigate("History", { history });
+  };
+
   const CalcButton = ({
     label,
     onClick,
@@ -801,6 +810,16 @@ const Calculator = () => {
 
         {/* Button Grid */}
         <View style={styles.buttonGrid}>
+          <View style={styles.row}>
+            <TouchableOpacity
+              onPress={navigateToHistory}
+              style={styles.historyButton}
+            >
+              <Text style={styles.historyButtonText}>
+                <Icon name="history" size={24} color="white" />
+              </Text>
+            </TouchableOpacity>
+          </View>
           {isScientific ? (
             <>
               <View style={styles.row}>
@@ -969,6 +988,27 @@ const styles = StyleSheet.create({
     maxWidth: 320,
     justifyContent: "center",
     paddingTop: 20,
+  },
+
+  historyButton: {
+    bottom: 120,
+    left: 14,
+  },
+  historyButtonText: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "500",
+  },
+
+  historyList: {
+    paddingHorizontal: 16,
+    paddingBottom: 20,
+  },
+  historyItem: {
+    backgroundColor: "#333",
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
   },
 
   // Header styles
