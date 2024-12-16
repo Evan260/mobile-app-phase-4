@@ -320,18 +320,16 @@ const Calculator = () => {
         });
       }
 
-      // Handle square root
-      while (tempExpr.includes("√")) {
-        tempExpr = tempExpr.replace(/√(-?\d*\.?\d+)/g, (match, number) => {
+      // Handle square root with implicit multiplication
+      tempExpr = tempExpr.replace(
+        /(\d*\.?\d*)?√(-?\d*\.?\d+)/g,
+        (match, coeff, number) => {
           const value = parseFloat(number);
           if (value < 0) throw new Error("Invalid input");
-          return Math.sqrt(value).toString();
-        });
-        // Handle remaining √ without numbers
-        if (tempExpr.includes("√")) {
-          tempExpr = tempExpr.replace(/√/g, "");
+          const sqrtResult = Math.sqrt(value);
+          return coeff ? `${coeff}*${sqrtResult}` : sqrtResult.toString();
         }
-      }
+      );
 
       // Handle percentage calculations after exponents
       expr = expr.replace(/(\d+\.?\d*)%(?!\^)/g, (_, num) => {
