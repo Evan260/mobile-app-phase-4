@@ -191,7 +191,12 @@ const Calculator = () => {
     try {
       if (!expr) return "";
 
-      // Handle percentage calculations first
+      // Handle implicit multiplication
+      expr = expr.replace(/(\d+|\))(?=\()/g, "$1×"); // 2(5) -> 2×(5)
+      expr = expr.replace(/\)(\d+)/g, ")×$1"); // (2)5 -> (2)×5
+      expr = expr.replace(/(\d)\(/g, "$1×("); // 2(3) -> 2×(3)
+
+      // Handle percentage calculations
       expr = expr.replace(/(\d+\.?\d*)%/g, (_, num) => {
         return (parseFloat(num) / 100).toString();
       });
