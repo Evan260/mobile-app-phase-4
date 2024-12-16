@@ -213,6 +213,13 @@ const Calculator = () => {
       // Don't evaluate if it's just an operator
       if (!/[0-9πe]/.test(tempExpr)) return "";
 
+      // Handle implicit multiplication after trigonometric functions and parentheses
+      tempExpr = tempExpr.replace(/(\))(\d+|[πe√]|sin|cos|tan)/g, "$1×$2");
+      tempExpr = tempExpr.replace(
+        /(sin|cos|tan)\(([^()]*)\)(\d+|[πe√])/g,
+        "$1($2)×$3"
+      );
+
       // Handle factorial before other operations
       while (tempExpr.includes("!")) {
         tempExpr = tempExpr.replace(/(\d+\.?\d*)!/g, (match, number) => {
