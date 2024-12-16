@@ -222,17 +222,29 @@ const Calculator = () => {
 
       // Handle factorial before other operations
       while (tempExpr.includes("!")) {
-        tempExpr = tempExpr.replace(/(\d+\.?\d*)!/g, (match, number) => {
-          const n = parseInt(number);
-          if (n !== parseFloat(number))
-            throw new Error("Factorial requires whole numbers");
-          if (n < 0) throw new Error("Invalid input");
-          if (n === 0 || n === 1) return "1";
-          if (n > 170) return "Infinity";
-          let result = 1;
-          for (let i = 2; i <= n; i++) result *= i;
-          return `(${result})`; // Wrap factorial result in parentheses
-        });
+        tempExpr = tempExpr.replace(
+          /(\d+\.?\d*|\([^()]*\))!(\d+|\()?/g,
+          (match, number, after) => {
+            // Remove parentheses if present and evaluate the expression inside
+            if (number.startsWith("(") && number.endsWith(")")) {
+              number = evaluateExpression(number.slice(1, -1), mode);
+            }
+
+            const n = parseInt(number);
+            if (n !== parseFloat(number)) {
+              throw new Error("Factorial requires whole numbers");
+            }
+            if (n < 0) throw new Error("Invalid input");
+            if (n === 0 || n === 1) return after ? `1×${after}` : "1";
+            if (n > 170) return after ? `Infinity×${after}` : "Infinity";
+
+            let result = 1;
+            for (let i = 2; i <= n; i++) result *= i;
+
+            // Add multiplication sign if there's a number or parenthesis after
+            return after ? `${result}×${after}` : result.toString();
+          }
+        );
       }
 
       // Handle inverse trig functions first
