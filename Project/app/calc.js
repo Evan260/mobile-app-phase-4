@@ -1032,7 +1032,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   equationText: {
-    
+    color: "#666",
+    fontSize: 48,
+    textAlign: "right",
+    fontWeight: "300",
+    height: 60,
+    padding: 0,
+    minWidth: 20,
   },
   displayText: {
     color: "#666",
