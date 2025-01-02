@@ -9,12 +9,17 @@ import {
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
-const Calculator = () => {
+const Calculator = ({ navigation }) => {
   const [display, setDisplay] = useState("");
   const [equation, setEquation] = useState("");
   const [showingResult, setShowingResult] = useState(false);
   const [isScientific, setIsScientific] = useState(false);
   const [cursorPosition, setCursorPosition] = useState(0);
+  const [isRadianMode, setIsRadianMode] = useState(false); // Default to degrees
+  const [isInverseMode, setIsInverseMode] = useState(false);
+  const [history, setHistory] = useState([]);
+
+  const degToRad = (degrees) => (degrees * Math.PI) / 180;
 
   const formatNumberWithCommas = (number) => {
     // Handle decimal numbers
@@ -61,19 +66,21 @@ const Calculator = () => {
 
     // Format numbers in the equation while preserving operators and functions
     const formatEquation = (eq) => {
-      return eq.replace(/\d+(\.\d+)?/g, (match) =>
+      let formatted = eq.replace(/\d+(\.\d+)?/g, (match) =>
         formatNumberWithCommas(match)
       );
+      // Add superscript formatting for inverse trig functions
+      formatted = formatEquationDisplay(formatted);
+      return formatted;
     };
 
     const formattedText = formatEquation(text);
 
-    // Calculate cursor position adjustment due to added commas
-    const originalBeforeCursor = text.slice(0, position);
-    const formattedBeforeCursor = formatEquation(originalBeforeCursor);
-    const positionAdjustment =
-      formattedBeforeCursor.length - originalBeforeCursor.length;
-    const adjustedPosition = position + positionAdjustment;
+    // Adjust cursor position for the formatted text
+    let adjustedPosition = position;
+    const beforeCursor = text.slice(0, position);
+    const formattedBeforeCursor = formatEquation(beforeCursor);
+    adjustedPosition = formattedBeforeCursor.length;
 
     return (
       <Text style={[styles.equationText, styles.boldText]}>
@@ -84,7 +91,7 @@ const Calculator = () => {
     );
   };
 
-  const calculateLiveResult = (expr) => {
+  const calculateLiveResult = (expr, mode = isRadianMode) => {
     try {
       if (!expr) return "";
 
@@ -95,7 +102,7 @@ const Calculator = () => {
 
       // Remove trailing operator for calculation
       let tempExpr = expr;
-      const endsWithOperator = /[+\-×÷]$/.test(tempExpr);
+      const endsWithOperator = /[+\-×÷^]$/.test(tempExpr);
 
       if (endsWithOperator) {
         tempExpr = tempExpr.slice(0, -1);
@@ -112,8 +119,8 @@ const Calculator = () => {
       // Don't evaluate if it's just an operator
       if (!/[0-9πe]/.test(tempExpr)) return "";
 
-      // Evaluate the expression
-      const result = evaluateExpression(tempExpr);
+      // Pass the mode to evaluateExpression
+      const result = evaluateExpression(tempExpr, mode);
       const formattedResult = parseFloat(result.toFixed(10));
 
       // Don't show NaN or invalid results
@@ -181,122 +188,222 @@ const Calculator = () => {
     setShowingResult(false);
   };
 
-  const factorial = (n) => {
-    // Handle edge cases
-    if (n < 0) return "Error";
-    if (n === 0 || n === 1) return 1;
-    if (n > 170) return Infinity; // JavaScript's limit for factorial calculations
-
-    // Calculate factorial
-    let result = 1;
-    for (let i = 2; i <= n; i++) {
-      result *= i;
-    }
-    return result;
-  };
-
-  const evaluateExpression = (expr) => {
+  const evaluateExpression = (expr, mode = isRadianMode) => {
     try {
-      // Add implicit multiplication for constants
-      expr = expr.replace(/(\d+)([πe])/g, "$1×$2");
-      expr = expr.replace(/([πe])(\d+)/g, "$1×$2");
+      if (!expr) return "";
 
-      // Replace constants first
-      expr = expr.replace(/π/g, Math.PI.toString());
-      expr = expr.replace(/e/g, Math.E.toString());
+      // Handle implicit multiplication
+      expr = expr.replace(/(\d+|\))(?=\()/g, "$1×"); // 2(5) -> 2×(5)
+      expr = expr.replace(/\)(\d+)/g, ")×$1"); // (2)5 -> (2)×5
+      expr = expr.replace(/(\d)\(/g, "$1×("); // 2(3) -> 2×(3)
 
-      // Handle scientific functions with parentheses
-      while (/(?:sin|cos|tan|log|ln)\([^()]*\)/.test(expr)) {
-        expr = expr.replace(/sin\(([^()]*)\)/g, (_, num) =>
-          Math.sin(
-            (parseFloat(evaluateExpression(num)) * Math.PI) / 180
-          ).toString()
-        );
-        expr = expr.replace(/cos\(([^()]*)\)/g, (_, num) =>
-          Math.cos(
-            (parseFloat(evaluateExpression(num)) * Math.PI) / 180
-          ).toString()
-        );
-        expr = expr.replace(/tan\(([^()]*)\)/g, (_, num) =>
-          Math.tan(
-            (parseFloat(evaluateExpression(num)) * Math.PI) / 180
-          ).toString()
-        );
-        expr = expr.replace(/log\(([^()]*)\)/g, (_, num) =>
-          Math.log10(parseFloat(evaluateExpression(num))).toString()
-        );
-        expr = expr.replace(/ln\(([^()]*)\)/g, (_, num) =>
-          Math.log(parseFloat(evaluateExpression(num))).toString()
-        );
-      }
-
-      // Handle square root (without parentheses)
-      expr = expr.replace(/√(\d*\.?\d*)/g, (_, num) =>
-        Math.sqrt(parseFloat(num)).toString()
-      );
-
-      // Handle inverse
-      expr = expr.replace(/1\/\(([^()]*)\)/g, (_, num) =>
-        (1 / parseFloat(evaluateExpression(num))).toString()
-      );
-
-      // Handle factorial
-      expr = expr.replace(/(\d+)!/g, (match, num) => {
-        const factorialResult = factorial(parseInt(num));
-        if (factorialResult === "Error") throw new Error("Invalid factorial");
-        return factorialResult.toString();
+      // Handle percentage calculations
+      expr = expr.replace(/(\d+\.?\d*)%/g, (_, num) => {
+        return (parseFloat(num) / 100).toString();
       });
 
-      // Handle nested parentheses
-      while (expr.includes("(")) {
-        expr = expr.replace(/\(([^()]*)\)/g, (_, inner) =>
-          evaluateExpression(inner)
+      // Remove trailing operator for calculation
+      let tempExpr = expr;
+      const endsWithOperator = /[+\-×÷^]$/.test(tempExpr);
+      if (endsWithOperator) {
+        tempExpr = tempExpr.slice(0, -1);
+      }
+
+      // Complete unclosed parentheses
+      const openParens = (tempExpr.match(/\(/g) || []).length;
+      const closeParens = (tempExpr.match(/\)/g) || []).length;
+      if (openParens > closeParens) {
+        tempExpr = tempExpr + ")".repeat(openParens - closeParens);
+      }
+
+      // Don't evaluate if it's just an operator
+      if (!/[0-9πe]/.test(tempExpr)) return "";
+
+      // Handle implicit multiplication after trigonometric functions and parentheses
+      tempExpr = tempExpr.replace(/(\))(\d+|[πe√]|sin|cos|tan)/g, "$1×$2");
+      tempExpr = tempExpr.replace(
+        /(sin|cos|tan)\(([^()]*)\)(\d+|[πe√])/g,
+        "$1($2)×$3"
+      );
+
+      // Handle factorial before other operations
+      while (tempExpr.includes("!")) {
+        tempExpr = tempExpr.replace(
+          /(\d+\.?\d*|\([^()]*\))!(\d+|\()?/g,
+          (match, number, after) => {
+            // Remove parentheses if present and evaluate the expression inside
+            if (number.startsWith("(") && number.endsWith(")")) {
+              number = evaluateExpression(number.slice(1, -1), mode);
+            }
+
+            const n = parseInt(number);
+            if (n !== parseFloat(number)) {
+              throw new Error("Factorial requires whole numbers");
+            }
+            if (n < 0) throw new Error("Invalid input");
+            if (n === 0 || n === 1) return after ? `1×${after}` : "1";
+            if (n > 170) return after ? `Infinity×${after}` : "Infinity";
+
+            let result = 1;
+            for (let i = 2; i <= n; i++) result *= i;
+
+            // Add multiplication sign if there's a number or parenthesis after
+            return after ? `${result}×${after}` : result.toString();
+          }
         );
       }
 
-      // Split by operators while keeping the operators in the array
-      let tokens = expr.split(/([+\-×÷^])/);
-
-      // Remove any empty strings from the array
-      tokens = tokens.filter((token) => token !== "");
-
-      // Handle multiplication and division first
-      let i = 1;
-      while (i < tokens.length) {
-        if (tokens[i] === "×" || tokens[i] === "÷") {
-          const num1 = parseFloat(tokens[i - 1]);
-          const num2 = parseFloat(tokens[i + 1]);
-          let result;
-
-          if (tokens[i] === "×") {
-            result = num1 * num2;
-          } else {
-            if (num2 === 0) throw new Error("Division by zero");
-            result = num1 / num2;
+      // Handle inverse trig functions first
+      while (/(?:sin|cos|tan)-1\([^()]*\)/.test(tempExpr)) {
+        tempExpr = tempExpr.replace(/sin-1\(([^()]*)\)/g, (_, num) => {
+          const value = parseFloat(evaluateExpression(num, mode));
+          if (value < -1 || value > 1) throw new Error("Domain error");
+          let result = Math.asin(value);
+          if (!mode) {
+            result = (result * 180) / Math.PI;
           }
+          return result.toString();
+        });
 
-          tokens.splice(i - 1, 3, result.toString());
-          i--;
-        }
-        i++;
+        tempExpr = tempExpr.replace(/cos-1\(([^()]*)\)/g, (_, num) => {
+          const value = parseFloat(evaluateExpression(num, mode));
+          if (value < -1 || value > 1) throw new Error("Domain error");
+          let result = Math.acos(value);
+          if (!mode) {
+            result = (result * 180) / Math.PI;
+          }
+          return result.toString();
+        });
+
+        tempExpr = tempExpr.replace(/tan-1\(([^()]*)\)/g, (_, num) => {
+          const value = parseFloat(evaluateExpression(num, mode));
+          let result = Math.atan(value);
+          if (!mode) {
+            result = (result * 180) / Math.PI;
+          }
+          return result.toString();
+        });
       }
 
-      // Handle addition and subtraction
-      let result = parseFloat(tokens[0]);
-      for (i = 1; i < tokens.length; i += 2) {
-        const operator = tokens[i];
-        const num = parseFloat(tokens[i + 1]);
+      // Handle regular trig functions
+      while (/(?:sin|cos|tan)\([^()]*\)/.test(tempExpr)) {
+        tempExpr = tempExpr.replace(/sin\(([^()]*)\)/g, (_, num) => {
+          const value = parseFloat(evaluateExpression(num, mode));
+          const angleInRad = mode ? value : degToRad(value);
+          const result = Math.sin(angleInRad);
+          return Math.abs(result) < 1e-10 ? "0" : result.toString();
+        });
 
-        if (operator === "+") {
-          result += num;
-        } else if (operator === "-") {
-          result -= num;
-        }
+        tempExpr = tempExpr.replace(/cos\(([^()]*)\)/g, (_, num) => {
+          const value = parseFloat(evaluateExpression(num, mode));
+          const angleInRad = mode ? value : degToRad(value);
+          const result = Math.cos(angleInRad);
+          return Math.abs(result) < 1e-10 ? "0" : result.toString();
+        });
+
+        tempExpr = tempExpr.replace(/tan\(([^()]*)\)/g, (_, num) => {
+          const value = parseFloat(evaluateExpression(num, mode));
+          const angleInRad = mode ? value : degToRad(value);
+          if (Math.abs(Math.cos(angleInRad)) < 1e-10) {
+            throw new Error("Undefined");
+          }
+          const result = Math.tan(angleInRad);
+          return Math.abs(result) < 1e-10 ? "0" : result.toString();
+        });
       }
 
-      return result;
+      // Handle inverse logarithms (10^x and e^x) before regular logarithms
+      while (/(?:10|e)\^(-?\d*\.?\d+|\([^()]*\))/.test(tempExpr)) {
+        tempExpr = tempExpr.replace(
+          /10\^(-?\d*\.?\d+|\([^()]*\))/g,
+          (_, num) => {
+            const value = parseFloat(evaluateExpression(num, mode));
+            return Math.pow(10, value).toString();
+          }
+        );
+        tempExpr = tempExpr.replace(
+          /e\^(-?\d*\.?\d+|\([^()]*\))/g,
+          (_, num) => {
+            const value = parseFloat(evaluateExpression(num, mode));
+            return Math.exp(value).toString();
+          }
+        );
+      }
+
+      // Handle logarithms
+      while (/(?:log|ln)\([^()]*\)/.test(tempExpr)) {
+        tempExpr = tempExpr.replace(/log\(([^()]*)\)/g, (_, num) => {
+          const value = parseFloat(evaluateExpression(num, mode));
+          if (value <= 0) throw new Error("Invalid input");
+          return Math.log10(value).toString();
+        });
+
+        tempExpr = tempExpr.replace(/ln\(([^()]*)\)/g, (_, num) => {
+          const value = parseFloat(evaluateExpression(num, mode));
+          if (value <= 0) throw new Error("Invalid input");
+          return Math.log(value).toString();
+        });
+      }
+
+      // Handle square root with implicit multiplication
+      tempExpr = tempExpr.replace(
+        /(\d*\.?\d*)?√(-?\d*\.?\d+)/g,
+        (match, coeff, number) => {
+          const value = parseFloat(number);
+          if (value < 0) throw new Error("Invalid input");
+          const sqrtResult = Math.sqrt(value);
+          return coeff ? `${coeff}*${sqrtResult}` : sqrtResult.toString();
+        }
+      );
+
+      // Handle percentage calculations after exponents
+      expr = expr.replace(/(\d+\.?\d*)%(?!\^)/g, (_, num) => {
+        return `(${num}/100)`;
+      });
+
+      // Handle exponents with implicit multiplication
+      while (tempExpr.includes("^")) {
+        tempExpr = tempExpr.replace(
+          /(-?\d*\.?\d+)\^(-?\d*\.?\d+)(?=\d)/g,
+          (_, base, exp) => {
+            const result = Math.pow(parseFloat(base), parseFloat(exp));
+            return `${result}×`; // Add multiplication operator after exponent
+          }
+        );
+
+        tempExpr = tempExpr.replace(
+          /(-?\d*\.?\d+)\^(-?\d*\.?\d+)/g,
+          (_, base, exp) => {
+            return Math.pow(parseFloat(base), parseFloat(exp));
+          }
+        );
+      }
+
+      // Handle remaining percentages after all operations
+      tempExpr = tempExpr.replace(/(\d+\.?\d*)%/g, (_, num) => {
+        return `(${num}/100)`;
+      });
+
+      // Add implicit multiplication for remaining cases
+      tempExpr = tempExpr.replace(/π(\d+)/g, "π×$1"); // π2 -> π×2
+      tempExpr = tempExpr.replace(/e(\d+)/g, "e×$1"); // e2 -> e×2
+      tempExpr = tempExpr.replace(/π\(/g, "π×("); // π(2) -> π×(2)
+      tempExpr = tempExpr.replace(/e\(/g, "e×("); // e(2) -> e×(2)
+      tempExpr = tempExpr.replace(/(\d+)π/g, "$1×π"); // 2π -> 2×π
+      tempExpr = tempExpr.replace(/(\d+)e/g, "$1×e"); // 2e -> 2×e
+
+      // Replace constants
+      tempExpr = tempExpr.replace(/π/g, Math.PI.toString());
+      tempExpr = tempExpr.replace(/e/g, Math.E.toString());
+
+      // Evaluate remaining arithmetic
+      const result = eval(tempExpr.replace(/×/g, "*").replace(/÷/g, "/"));
+
+      // Format the result
+      const formattedResult = parseFloat(result.toFixed(10));
+      return isNaN(formattedResult) ? "" : formattedResult;
     } catch (error) {
-      throw new Error("Invalid expression");
+      throw new Error(error.message || "Invalid expression");
     }
   };
 
@@ -312,6 +419,10 @@ const Calculator = () => {
         setDisplay("Error");
       } else {
         setDisplay(formattedResult.toString());
+        setHistory((prevHistory) => [
+          ...prevHistory,
+          { equation, result: formattedResult.toString() },
+        ]);
       }
       setShowingResult(true);
     } catch (error) {
@@ -321,34 +432,173 @@ const Calculator = () => {
     }
   };
 
+  const TrigButton = ({ func, onClick }) => (
+    <TouchableOpacity
+      style={[styles.button, styles.numberButton]}
+      onPress={onClick}
+    >
+      <View style={styles.trigButtonContent}>
+        <Text style={styles.buttonText}>{func}</Text>
+        {isInverseMode && (
+          <Text style={styles.superscriptText}>{"\u207B\u00B9"}</Text>
+        )}
+      </View>
+    </TouchableOpacity>
+  );
+
+  const SqrtButton = ({ onClick }) => (
+    <TouchableOpacity
+      style={[styles.button, styles.numberButton]}
+      onPress={onClick}
+    >
+      <View style={styles.trigButtonContent}>
+        {isInverseMode ? (
+          <View style={styles.superContainer}>
+            <Text style={styles.buttonText}>x</Text>
+            <Text style={styles.superscriptText}>2</Text>
+          </View>
+        ) : (
+          <Text style={styles.buttonText}>√</Text>
+        )}
+      </View>
+    </TouchableOpacity>
+  );
+
+  const LogButton = ({ onClick }) => (
+    <TouchableOpacity
+      style={[styles.button, styles.numberButton]}
+      onPress={onClick}
+    >
+      <View style={styles.trigButtonContent}>
+        {isInverseMode ? (
+          <View style={styles.superContainer}>
+            <Text style={styles.buttonText}>10</Text>
+            <Text style={styles.superscriptText}>x</Text>
+          </View>
+        ) : (
+          <Text style={styles.buttonText}>log</Text>
+        )}
+      </View>
+    </TouchableOpacity>
+  );
+
+  const LnButton = ({ onClick }) => (
+    <TouchableOpacity
+      style={[styles.button, styles.numberButton]}
+      onPress={onClick}
+    >
+      <View style={styles.trigButtonContent}>
+        {isInverseMode ? (
+          <View style={styles.superContainer}>
+            <Text style={styles.buttonText}>e</Text>
+            <Text style={styles.superscriptText}>x</Text>
+          </View>
+        ) : (
+          <Text style={styles.buttonText}>ln</Text>
+        )}
+      </View>
+    </TouchableOpacity>
+  );
+
+  const formatEquationDisplay = (text) => {
+    // Handle inverse trig functions
+    let formatted = text.replace(/(sin|cos|tan)-1\(/g, (match, func) => {
+      return `${func}\u207B\u00B9(`; // Using unicode superscript characters
+    });
+    // Handle squared numbers using superscript 2
+    formatted = formatted.replace(/\^2/g, "\u00B2");
+    return formatted;
+  };
+
   const handleScientificFunction = (func) => {
     let newEquation;
     let newPosition;
 
     switch (func) {
       case "sqrt":
-        if (showingResult || !equation) {
-          newEquation = "√";
-          newPosition = 1;
+        if (isInverseMode) {
+          // Handle x²
+          if (showingResult) {
+            // If showing result, add square to the result
+            newEquation = display + "^2";
+            newPosition = newEquation.length;
+          } else {
+            // Check if there's a valid number or expression to square
+            const beforeCursor = equation.slice(0, cursorPosition);
+            const hasValidBase = /[\d)πe]$/.test(beforeCursor);
+
+            if (!hasValidBase) {
+              return; // Don't add square if there's no valid base
+            }
+
+            newEquation =
+              equation.slice(0, cursorPosition) +
+              "^2" +
+              equation.slice(cursorPosition);
+            newPosition = cursorPosition + 2;
+          }
         } else {
-          newEquation =
-            equation.slice(0, cursorPosition) +
-            "√" +
-            equation.slice(cursorPosition);
-          newPosition = cursorPosition + 1;
+          // Original √ functionality
+          if (showingResult || !equation) {
+            newEquation = "√";
+            newPosition = 1;
+          } else {
+            newEquation =
+              equation.slice(0, cursorPosition) +
+              "√" +
+              equation.slice(cursorPosition);
+            newPosition = cursorPosition + 1;
+          }
         }
         break;
 
       case "sin":
       case "cos":
       case "tan":
-      case "log":
-      case "ln":
         if (showingResult) {
-          newEquation = func + "(" + display + ")";
+          newEquation =
+            func + (isInverseMode ? "-1" : "") + "(" + display + ")";
           newPosition = newEquation.length;
         } else {
-          const funcStr = func + "(";
+          const funcStr = func + (isInverseMode ? "-1" : "") + "(";
+          newEquation =
+            equation.slice(0, cursorPosition) +
+            funcStr +
+            equation.slice(cursorPosition);
+          newPosition = cursorPosition + funcStr.length;
+        }
+        break;
+
+      case "log":
+        if (showingResult) {
+          if (isInverseMode) {
+            // 10^x
+            newEquation = "10^(" + display + ")";
+          } else {
+            newEquation = "log(" + display + ")";
+          }
+          newPosition = newEquation.length;
+        } else {
+          const funcStr = isInverseMode ? "10^(" : "log(";
+          newEquation =
+            equation.slice(0, cursorPosition) +
+            funcStr +
+            equation.slice(cursorPosition);
+          newPosition = cursorPosition + funcStr.length;
+        }
+        break;
+
+      case "ln":
+        if (showingResult) {
+          if (isInverseMode) {
+            // e^x
+            newEquation = "e^(" + display + ")";
+          } else {
+            newEquation = "ln(" + display + ")";
+          }
+          newPosition = newEquation.length;
+        } else {
+          const funcStr = isInverseMode ? "e^(" : "ln(";
           newEquation =
             equation.slice(0, cursorPosition) +
             funcStr +
@@ -358,18 +608,9 @@ const Calculator = () => {
         break;
 
       case "inv":
-        if (showingResult) {
-          newEquation = "1/(" + display + ")";
-          newPosition = newEquation.length;
-        } else {
-          const invStr = "1/(";
-          newEquation =
-            equation.slice(0, cursorPosition) +
-            invStr +
-            equation.slice(cursorPosition);
-          newPosition = cursorPosition + invStr.length;
-        }
-        break;
+        // Toggle inverse mode
+        setIsInverseMode(!isInverseMode);
+        return;
 
       case "factorial":
         if (showingResult) {
@@ -424,26 +665,57 @@ const Calculator = () => {
     setShowingResult(false);
   };
 
-  const handleBackspace = () => {
-    if (!showingResult) {
-      let newEquation = equation;
-
-      // Check for function names to delete
-      const functions = ["sin(", "cos(", "tan(", "log(", "ln("];
-      for (const func of functions) {
-        if (equation.endsWith(func)) {
-          newEquation = equation.slice(0, -func.length);
-          setEquation(newEquation);
-          setDisplay(calculateLiveResult(newEquation));
-          return;
-        }
-      }
-
-      // Normal backspace behavior
-      newEquation = equation.slice(0, -1);
-      setEquation(newEquation);
-      setDisplay(calculateLiveResult(newEquation));
+  const handleAngleModeChange = (newMode) => {
+    setIsRadianMode(newMode);
+    if (equation) {
+      // Pass the new mode directly to calculateLiveResult
+      const newResult = calculateLiveResult(equation, newMode);
+      setDisplay(newResult);
     }
+  };
+
+  const handleBackspace = () => {
+    if (showingResult || cursorPosition === 0) return;
+
+    const functions = [
+      "sin-1(",
+      "cos-1(",
+      "tan-1(",
+      "sin(",
+      "cos(",
+      "tan(",
+      "log(",
+      "ln(",
+      "10^(",
+      "e^(",
+      "^2",
+    ];
+    const beforeCursor = equation.slice(0, cursorPosition);
+    let newEquation;
+
+    // Check if cursor is after any function
+    for (const func of functions) {
+      if (beforeCursor.endsWith(func)) {
+        newEquation =
+          equation.slice(0, cursorPosition - func.length) +
+          equation.slice(cursorPosition);
+        setEquation(newEquation);
+        setCursorPosition(cursorPosition - func.length);
+        setDisplay(calculateLiveResult(newEquation));
+        return;
+      }
+    }
+
+    // Normal backspace - remove single character
+    newEquation =
+      equation.slice(0, cursorPosition - 1) + equation.slice(cursorPosition);
+    setEquation(newEquation);
+    setCursorPosition(cursorPosition - 1);
+    setDisplay(calculateLiveResult(newEquation));
+  };
+
+  const navigateToHistory = () => {
+    navigation.navigate("History", { history });
   };
 
   const CalcButton = ({
@@ -451,6 +723,7 @@ const Calculator = () => {
     onClick,
     isOperator = false,
     isEqual = false,
+    isActive = false,
   }) => (
     <TouchableOpacity
       style={[
@@ -463,7 +736,14 @@ const Calculator = () => {
       ]}
       onPress={onClick}
     >
-      <Text style={styles.buttonText}>{label}</Text>
+      <Text
+        style={[
+          styles.buttonText,
+          isActive && styles.activeButtonText, // Apply active style when button is active
+        ]}
+      >
+        {label}
+      </Text>
     </TouchableOpacity>
   );
 
@@ -530,44 +810,51 @@ const Calculator = () => {
 
         {/* Button Grid */}
         <View style={styles.buttonGrid}>
+          <View style={styles.row}>
+            <TouchableOpacity
+              onPress={navigateToHistory}
+              style={styles.historyButton}
+            >
+              <Text style={styles.historyButtonText}>
+                <Icon name="history" size={24} color="white" />
+              </Text>
+            </TouchableOpacity>
+          </View>
           {isScientific ? (
             <>
               <View style={styles.row}>
-                <CalcButton
-                  label="sin"
+                <TrigButton
+                  func="sin"
                   onClick={() => handleScientificFunction("sin")}
                 />
-                <CalcButton
-                  label="cos"
+                <TrigButton
+                  func="cos"
                   onClick={() => handleScientificFunction("cos")}
                 />
-                <CalcButton
-                  label="tan"
+                <TrigButton
+                  func="tan"
                   onClick={() => handleScientificFunction("tan")}
                 />
                 <CalcButton
                   label="rad"
-                  onClick={() => handleScientificFunction("rad")}
+                  onClick={() => handleAngleModeChange(true)}
+                  isActive={isRadianMode}
                 />
                 <CalcButton
                   label="deg"
-                  onClick={() => handleScientificFunction("deg")}
+                  onClick={() => handleAngleModeChange(false)}
+                  isActive={!isRadianMode}
                 />
               </View>
               <View style={styles.row}>
-                <CalcButton
-                  label="log"
-                  onClick={() => handleScientificFunction("log")}
-                />
-                <CalcButton
-                  label="ln"
-                  onClick={() => handleScientificFunction("ln")}
-                />
+                <LogButton onClick={() => handleScientificFunction("log")} />
+                <LnButton onClick={() => handleScientificFunction("ln")} />
                 <CalcButton label="(" onClick={() => handleNumber("(")} />
                 <CalcButton label=")" onClick={() => handleNumber(")")} />
                 <CalcButton
                   label="inv"
                   onClick={() => handleScientificFunction("inv")}
+                  isActive={isInverseMode}
                 />
               </View>
               <View style={styles.row}>
@@ -596,10 +883,7 @@ const Calculator = () => {
                 />
               </View>
               <View style={styles.row}>
-                <CalcButton
-                  label="√"
-                  onClick={() => handleScientificFunction("sqrt")}
-                />
+                <SqrtButton onClick={() => handleScientificFunction("sqrt")} />
                 <CalcButton label="4" onClick={() => handleNumber("4")} />
                 <CalcButton label="5" onClick={() => handleNumber("5")} />
                 <CalcButton label="6" onClick={() => handleNumber("6")} />
@@ -706,6 +990,27 @@ const styles = StyleSheet.create({
     paddingTop: 20,
   },
 
+  historyButton: {
+    bottom: 120,
+    left: 14,
+  },
+  historyButtonText: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "500",
+  },
+
+  historyList: {
+    paddingHorizontal: 16,
+    paddingBottom: 20,
+  },
+  historyItem: {
+    backgroundColor: "#333",
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+
   // Header styles
   header: {
     position: "absolute",
@@ -727,13 +1032,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   equationText: {
-    color: "#666",
-    fontSize: 48,
-    textAlign: "right",
-    fontWeight: "300",
-    height: 60,
-    padding: 0,
-    minWidth: 20,
+    
   },
   displayText: {
     color: "#666",
@@ -822,6 +1121,25 @@ const styles = StyleSheet.create({
     color: "#fff",
     textAlign: "center",
   },
+  trigButtonContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  superContainer: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "center",
+  },
+  superscriptText: {
+    fontSize: 12,
+    color: "#fff",
+    marginTop: 0,
+    marginLeft: 1,
+  },
+  equationText: {
+    lineHeight: 60,
+  },
 
   // Button variations
   numberButton: {
@@ -841,6 +1159,10 @@ const styles = StyleSheet.create({
   },
   scientificModeButton: {
     backgroundColor: "#222",
+  },
+  activeButtonText: {
+    color: "#0066ff", // Blue color for active state
+    fontWeight: "600",
   },
 
   // Text variations for different button types

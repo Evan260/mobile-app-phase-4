@@ -1,19 +1,4 @@
-<<<<<<< HEAD:React_Native_Final/app/_layout.js
-import React from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
-import { TouchableOpacity } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import Calculator from './calc';
-import Settings from './settings';
-import About from './screen/about';
-import AccountScreen from './screen/accountScreen';
-import AppearanceScreen from './screen/appearanceScreen';
-import Help from './screen/help';
-import Privacy from './screen/privacy';
-import Login from './login'; 
-import HistoryScreen from './historyScreen';
-=======
-import React from "react";
+import HistoryScreen from "./screen/historyScreen";
 import { createStackNavigator } from "@react-navigation/stack";
 import { TouchableOpacity } from "react-native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
@@ -25,7 +10,6 @@ import Appearance from "./screen/appearance";
 import Help from "./screen/help";
 import Privacy from "./screen/privacy";
 import Login from "./login";
->>>>>>> 078f5b91e7f39ab21603e5793b09752b8aa356ce:Project/app/_layout.js
 
 const Stack = createStackNavigator();
 
@@ -49,22 +33,21 @@ const CalculatorStack = () => (
       })}
     />
     <Stack.Screen
-          name="History"
-          component={HistoryScreen}
-          options={({ navigation }) => ({
-            headerStyle: {
-              backgroundColor: 'black',
-            },
-            headerTintColor: 'white',
-            headerTitle: '',
-            headerLeft: () => (
-              <TouchableOpacity onPress={() => navigation.navigate('calc')}>
-                <Icon name="close" size={30} color="white" />
-              </TouchableOpacity>
-            ),
-          })}
-          
-        />
+      name="History"
+      component={HistoryScreen}
+      options={({ navigation }) => ({
+        headerStyle: {
+          backgroundColor: "black",
+        },
+        headerTintColor: "white",
+        headerTitle: "",
+        headerLeft: () => (
+          <TouchableOpacity onPress={() => navigation.navigate("calc")}>
+            <Icon name="close" size={30} color="white" />
+          </TouchableOpacity>
+        ),
+      })}
+    />
     <Stack.Screen
       name="Settings"
       component={Settings}
@@ -75,7 +58,6 @@ const CalculatorStack = () => (
         headerTintColor: "white",
       }}
     />
-
     <Stack.Screen
       name="About"
       component={About}
@@ -86,7 +68,6 @@ const CalculatorStack = () => (
         headerTintColor: "white",
       }}
     />
-
     <Stack.Screen
       name="Account"
       component={Account}
@@ -97,7 +78,6 @@ const CalculatorStack = () => (
         headerTintColor: "white",
       }}
     />
-
     <Stack.Screen
       name="Appearance"
       component={Appearance}
@@ -108,7 +88,6 @@ const CalculatorStack = () => (
         headerTintColor: "white",
       }}
     />
-
     <Stack.Screen
       name="Help"
       component={Help}
@@ -119,7 +98,6 @@ const CalculatorStack = () => (
         headerTintColor: "white",
       }}
     />
-
     <Stack.Screen
       name="Privacy"
       component={Privacy}
@@ -143,7 +121,6 @@ function _layout() {
           headerShown: false,
         }}
       />
-
       <Stack.Screen
         name="CalculatorStack"
         component={CalculatorStack}
